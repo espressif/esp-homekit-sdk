@@ -1,0 +1,92 @@
+stages:
+  - build
+
+build_homekit_examples:
+  stage: build
+  image: $CI_DOCKER_REGISTRY/esp32-ci-env
+  tags:
+    - build
+
+  variables:
+    IDF_PATH: "$CI_PROJECT_DIR/esp-idf"
+    GIT_STRATEGY: clone
+    
+  artifacts:
+    paths:
+      - examples/fan/build/*.bin
+      - examples/fan/build/*.elf
+      - examples/fan/build/*.map
+      - examples/fan/build/bootloader/*.bin
+    expire_in: 6 mos
+
+  before_script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -n $GITLAB_KEY >> ~/.ssh/id_rsa_base64
+    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+  script:
+    - git submodule update --init --recursive
+    # Cloning esp-idf
+    - git clone -b release/v4.2 --recursive --depth 1 https://github.com/espressif/esp-idf.git
+    - cd esp-idf
+    - ./install.sh
+    - . export.sh
+
+    - cd ../examples/fan
+    - idf.py build
+    - cd ../bridge
+    - idf.py build
+    - cd ../lightbulb
+    - idf.py build
+    - cd ../smart_outlet
+    - idf.py build
+    - cd ../data_tlv8
+    - idf.py build
+    - cd ../aws-iot
+    - mkdir components
+    - cd components
+    - git clone --depth 1 --single-branch --recursive https://github.com/espressif/esp-aws-iot.git
+    - export AWS_IOT_PATH=$PWD/esp-aws-iot
+    - cd ..
+    - touch main/certs/device.crt main/certs/device.key
+    - idf.py build
+    - cd ../emulator
+    - idf.py build
+    - cd ../ethernet_bridge
+    - idf.py build
+    - cd ../fan
+    - rm -rf build sdkconfig sdkconfig.old
+    - make defconfig
+    - make -j4
+    - cd ../bridge
+    - rm -rf build sdkconfig sdkconfig.old
+    - make defconfig
+    - make -j4
+    - cd ../lightbulb
+    - rm -rf build sdkconfig sdkconfig.old
+    - make defconfig
+    - make -j4
+    - cd ../smart_outlet
+    - rm -rf build sdkconfig sdkconfig.old
+    - make defconfig
+    - make -j4
+    - cd ../data_tlv8
+    - rm -rf build sdkconfig sdkconfig.old
+    - make defconfig
+    - make -j4
+    - cd ../aws-iot
+    - rm -rf build sdkconfig sdkconfig.old
+    - touch main/certs/device.crt main/certs/device.key
+    - make defconfig
+    - make -j4
+    - cd ../emulator
+    - rm -rf build sdkconfig sdkconfig.old
+    - make defconfig
+    - make -j4
+    - cd ../ethernet_bridge
+    - rm -rf build sdkconfig sdkconfig.old
+    - make defconfig
+    - make -j4

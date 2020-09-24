@@ -1,0 +1,67 @@
+menu "AWS-IoT Example Configuration"
+
+    config EXAMPLE_USE_HARDCODED_SETUP_CODE
+        bool "Use hard-coded setup code"
+        default y
+        help
+            HomeKit does not recommend having the setup code programmed in the accessory as is.
+            Instead, it expects setup info (salt-verifier pair) generated for the given setup code.
+            Use this option only for testing purposes. For production, the setup info should be
+            used.
+
+    config EXAMPLE_SETUP_CODE
+        string "HomeKit Setup Code"
+        default "111-22-333"
+        depends on EXAMPLE_USE_HARDCODED_SETUP_CODE
+        help
+            Setup code to be used for HomeKot pairing, if hard-coded setup code is enabled.
+
+    config EXAMPLE_SETUP_ID
+        string "HomeKit Setup Id"
+        default "ES32"
+        depends on EXAMPLE_USE_HARDCODED_SETUP_CODE
+        help
+            Setup id to be used for HomeKot pairing, if hard-coded setup code is enabled.
+
+    config EXAMPLE_AWS_CLIENT_ID
+        string "Client Id"
+        default "MyClient"
+        help
+            The Client Id to be used for AWS-IoT MQTT connection
+
+    choice EXAMPLE_AWS_COMMUNICATION_MECHANISM
+        bool "AWS IoT Communication mechanism"
+        default EXAMPLE_AWS_THING_SHADOW
+        help
+            AWS IoT can use plain MQTT publish/subscribe or the AWS proprietary Thing/Shadow
+            for communicating with the AWS IoT MQTT broker. Choose the option you want to use.
+
+        config EXAMPLE_AWS_THING_SHADOW
+            bool "Thing-Shadow"
+        config EXAMPLE_AWS_PUB_SUB
+            bool "Publish-Subscribe"
+    endchoice
+
+    config EXAMPLE_AWS_COMMUNICATION_MECHANISM
+        int
+        default 1 if EXAMPLE_AWS_THING_SHADOW
+        default 2 if EXAMPLE_AWS_PUB_SUB
+
+    menu "Publish-Subscribe"
+        depends on EXAMPLE_AWS_PUB_SUB
+
+        config EXAMPLE_AWS_PUBLISH_TOPIC
+            string "MQTT Publish Topic"
+            default "device/publish"
+            help
+                The MQTT topic to which the accessory should publish the state changes
+
+        config EXAMPLE_AWS_SUBSCRIBE_TOPIC
+            string "MQTT Subscribe Topic"
+            default "device/subscribe"
+            help
+                The MQTT topic on which the accessory will receive state change messages from
+                the cloud
+
+    endmenu # Publish-Subscribe
+endmenu

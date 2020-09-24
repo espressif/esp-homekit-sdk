@@ -1,0 +1,85 @@
+menu "MFi I2C Setup"
+
+    choice
+        prompt "Choose Data Rate"
+        default DR_400 if IDF_TARGET_ESP32
+        default DR_100 if IDF_TARGET_ESP32S2
+        config DR_400
+            bool "400 kbit/s"
+        config DR_100
+            bool "100 kbit/s"
+    endchoice
+
+    config IC2_SPEED
+        int
+        default 400000 if DR_400
+        default 100000 if DR_100
+        help
+            Set the i2c datarate
+
+    config SDA_GPIO
+        int "SDA GPIO"
+        default 26 if IDF_TARGET_ESP32
+        default 4 if IDF_TARGET_ESP32S2
+        help
+            GPIO for SDA - please check schematic carefully
+
+    config SCL_GPIO
+        int "SCL GPIO"
+        default 27 if IDF_TARGET_ESP32
+        default 5 if IDF_TARGET_ESP32S2
+        help
+            GPIO for SCL - please check schematic carefully
+
+    config I2C_MAX_READ_COUNT
+        int "Max read count"
+        range 50 300
+        default 150
+        help
+            Set the max read count
+
+    config I2C_RETRY_COUNT
+        int "Retry Count"
+        default 200
+        help
+            Set the number of retries for an I2C interface
+
+endmenu
+
+menu "HAP HTTP Server"
+
+    config HAP_HTTP_STACK_SIZE
+        int "Server Stack Size"
+        default 12288
+        range 8192 32768
+        help
+            Set the stack size for the HomeKit HTTP Server thread.
+
+    config HAP_HTTP_SERVER_PORT
+        int "Server Port"
+        default 80
+        help
+            Set the HomeKit HTTP Server Port number.
+
+    config HAP_HTTP_CONTROL_PORT
+        int "Server Control Port"
+        default 32859
+        help
+            Set the HomeKit HTTP Server UDP Control Port which is used for internl communication.
+
+    config HAP_HTTP_MAX_OPEN_SOCKETS
+        int "Max Open Sockets"
+        default 8
+        range 2 24
+        help
+            Set the Maximum simultaneous Open Sockets that the HTTP Server should allow.
+            A minimum of 8 is required for HomeKit Certification.
+
+    config HAP_HTTP_MAX_URI_HANDLERS
+        int "Max URI Handlers"
+        default 16
+        range 12 32
+        help
+            Set the Maximum number of URI handlers that the HTTP Server should allow.
+
+endmenu

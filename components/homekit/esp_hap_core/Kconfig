@@ -1,0 +1,10 @@
+menu "HomeKit"
+
+    config HAP_MFI_ENABLE
+        bool "Enable MFi"
+        default n
+        help
+            If you have the MFi variant of the SDK, set this to true to use features like
+            HW authentication, software token authentication and WAC.
+
+endmenu
