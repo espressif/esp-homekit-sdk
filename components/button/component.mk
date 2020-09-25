@@ -1,0 +1,2 @@
+COMPONENT_ADD_INCLUDEDIRS := ./button/include
+COMPONENT_SRCDIRS := ./button

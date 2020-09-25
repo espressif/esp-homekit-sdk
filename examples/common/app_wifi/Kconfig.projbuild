@@ -1,0 +1,85 @@
+menu "App Wi-Fi"
+
+    choice APP_WIFI_CRED_SOURCE
+        bool "Source of Wi-Fi Credentials"
+        default APP_WIFI_USE_PROVISIONING
+        help
+            Wi-Fi credentials can either be hard-coded or provided using Provisioning.
+
+        config APP_WIFI_USE_PROVISIONING
+            bool "Use Provisioning"
+        config APP_WIFI_USE_HARDCODED
+            bool "Use Hardcoded"
+    endchoice
+
+    config APP_WIFI_CRED_SOURCE
+        int
+        default 1 if APP_WIFI_USE_PROVISIONING
+        default 2 if APP_WIFI_USE_HARDCODED
+
+
+    config APP_WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        depends on APP_WIFI_USE_HARDCODED
+        help
+            SSID (network name) for the example to connect to.
+
+    config APP_WIFI_PASSWORD
+        string "WiFi Password"
+        default "mypassword"
+        depends on APP_WIFI_USE_HARDCODED
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    choice APP_WIFI_PROVISIONING_TYPE
+        bool "Provisioning Type"
+        default APP_WIFI_USE_UNIFIED_PROVISIONING
+        depends on APP_WIFI_USE_PROVISIONING
+        help
+            The type of Provisioning to Use.
+
+        config APP_WIFI_USE_UNIFIED_PROVISIONING
+            bool "Unified Provisioning"
+        config APP_WIFI_USE_WAC_PROVISIONING
+            bool "Apple WAC Provisioning"
+            depends on HAP_MFI_ENABLE
+        config APP_WIFI_USE_BOTH_PROVISIONING
+            bool "Use Both"
+            depends on HAP_MFI_ENABLE
+    endchoice
+
+    config APP_WIFI_PROVISIONING_TYPE
+        int
+        default 1 if APP_WIFI_USE_UNIFIED_PROVISIONING
+        default 2 if APP_WIFI_USE_WAC_PROVISIONING
+        default 3 if APP_WIFI_USE_BOTH_PROVISIONING
+
+    config APP_WIFI_PROV_SHOW_QR
+        bool "Show provisioning QR code"
+        depends on APP_WIFI_USE_UNIFIED_PROVISIONING || APP_WIFI_USE_BOTH_PROVISIONING
+        default y
+        help
+            Show the QR code for provisioning.
+
+    choice APP_WIFI_PROV_TRANSPORT
+        bool "Provisioning Transport method"
+        default APP_WIFI_PROV_TRANSPORT_BLE
+        depends on APP_WIFI_USE_UNIFIED_PROVISIONING || APP_WIFI_USE_BOTH_PROVISIONING
+        help
+            Wi-Fi provisioning component offers both, SoftAP and BLE transports. Choose any one.
+
+        config APP_WIFI_PROV_TRANSPORT_SOFTAP
+            bool "Soft AP"
+        config APP_WIFI_PROV_TRANSPORT_BLE
+            bool "BLE"
+            select BT_ENABLED
+            depends on IDF_TARGET_ESP32
+    endchoice
+
+    config APP_WIFI_PROV_TRANSPORT
+        int
+        default 1 if APP_WIFI_PROV_TRANSPORT_SOFTAP
+        default 2 if APP_WIFI_PROV_TRANSPORT_BLE
+
+endmenu
