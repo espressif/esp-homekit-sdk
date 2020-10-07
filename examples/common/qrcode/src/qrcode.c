@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <esp_err.h>
+#include <stdlib.h>
 
 #include "qrcodegen.h"
 

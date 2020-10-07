@@ -8,7 +8,7 @@ MFI_VER := $(HAP_SDK_VER)-$(shell git log --pretty=format:"%h" -1)
 
 ifdef CONFIG_HAP_MFI_ENABLE
 COMPONENT_SRCDIRS += src/mfi
-COMPONENT_OBJEXCLUDE += src/esp_mfi_dummy.c
+COMPONENT_OBJEXCLUDE += src/esp_mfi_dummy.o
 COMPONENT_PRIV_INCLUDEDIRS += src/mfi
 endif
 
