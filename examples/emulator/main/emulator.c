@@ -138,7 +138,7 @@ static hap_serv_t *hap_outlet_create()
 {
     return hap_serv_outlet_create(false, true);
 }
-
+#ifndef CONFIG_IDF_TARGET_ESP8266
 static hap_serv_t *hap_thermostat_create()
 {
     return hap_serv_thermostat_create(0, 0, 20.0, 25.0, 0);
@@ -264,7 +264,7 @@ static hap_serv_t *hap_carbon_dioxide_sensor_create()
 {
     return hap_serv_carbon_dioxide_sensor_create(0);
 }
-
+#endif /* !CONFIG_IDF_TARGET_ESP8266 */
 /* List of services to be emulated */
 static hap_emulator_profile_t profiles[] = {
     {HAP_CID_FAN, "Fan", hap_fan_create},
@@ -274,6 +274,7 @@ static hap_emulator_profile_t profiles[] = {
     {HAP_CID_LOCK, "Lock-Management", hap_lock_management_create},
     {HAP_CID_OUTLET, "Outlet", hap_outlet_create},
     {HAP_CID_SWITCH, "Switch", hap_switch_create},
+#ifndef CONFIG_IDF_TARGET_ESP8266
     {HAP_CID_THERMOSTAT, "Thermostat", hap_thermostat_create},
     {HAP_CID_SENSOR, "Leak-Sensor", hap_leak_sensor_create},
     {HAP_CID_SENSOR, "Air-quality-Sensor", hap_air_quality_sensor_create},
@@ -297,6 +298,7 @@ static hap_emulator_profile_t profiles[] = {
     {HAP_CID_HUMIDIFIER, "Humidifier", hap_humidifier_create},
     {HAP_CID_DEHUMIDIFIER, "Dehumidifier", hap_dehumidifier_create},
     {HAP_CID_OTHER, "Battery", hap_battery_service_create},
+#endif /* !CONFIG_IDF_TARGET_ESP8266 */
 };
 
 /* Profile, Characteristics read, maniplation block */

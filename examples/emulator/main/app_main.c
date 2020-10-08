@@ -203,6 +203,7 @@ static void emulator_thread_entry(void *p)
      * Please refer the FW Upgrade documentation under components/homekit/extras/include/hap_fw_upgrade.h
      * and the top level README for more information.
      */
+#ifndef CONFIG_IDF_TARGET_ESP8266
     hap_fw_upgrade_config_t ota_config = {
         .server_cert_pem = server_cert,
     };
@@ -210,6 +211,7 @@ static void emulator_thread_entry(void *p)
 
     /* Add the service to the Accessory Object */
     hap_acc_add_serv(accessory, service);
+#endif
 
     /* Add the Accessory to the HomeKit Database */
     hap_add_accessory(accessory);
@@ -296,7 +298,7 @@ static void emulator_thread_entry(void *p)
         hap_val_t val;
         val.b = true;
         hap_serv_t *hs = hap_acc_get_first_serv(hap_get_first_acc());
-        while(!hap_serv_get_char_by_uuid(hs, HAP_CHAR_UUID_ON))
+        while(hs && !hap_serv_get_char_by_uuid(hs, HAP_CHAR_UUID_ON))
             hs = hap_serv_get_next(hs);
         if(hs)
             hap_char_update_val(hap_serv_get_char_by_uuid(hs, HAP_CHAR_UUID_ON), &val);    

@@ -27,7 +27,6 @@
 #include <freertos/task.h>
 #include <freertos/queue.h>
 #include <esp_event.h>
-#include <esp_eth.h>
 #include <esp_wifi.h>
 
 #include <esp_mfi_debug.h>

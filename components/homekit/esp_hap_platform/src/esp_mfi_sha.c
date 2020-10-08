@@ -30,6 +30,12 @@
 
 #include "esp_mfi_sha.h"
 
+#ifdef CONFIG_IDF_TARGET_ESP8266
+#define mbedtls_sha512_starts mbedtls_sha512_starts_ret
+#define mbedtls_sha512_update mbedtls_sha512_update_ret
+#define mbedtls_sha512_finish mbedtls_sha512_finish_ret
+#endif
+
 /**
  * @bref Create SHA1 context
  *

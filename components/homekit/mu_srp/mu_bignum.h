@@ -87,6 +87,9 @@ static inline int mu_bn_a_add_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, m
 #ifdef BIGNUM_MBEDTLS
 #include <mbedtls/bignum.h>
 #include <esp_system.h>
+#ifdef CONFIG_IDF_TARGET_ESP8266
+#include <driver/rtc.h>
+#endif
 typedef mbedtls_mpi mu_bn_t;
 typedef mu_bn_t mu_bn_ctx_t;
 
@@ -166,6 +169,27 @@ static inline int mu_bn_get_rand(mu_bn_t *bn, int bits, int top, int bottom)
     return mbedtls_mpi_fill_random(bn, bits / 8,  mu_get_random, NULL);
 }
 
+#ifdef CONFIG_IDF_TARGET_ESP8266
+static inline int mu_bn_a_exp_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, mu_bn_t *c, mu_bn_ctx_t *ctx)
+{
+    int ret;
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_160M);
+    ret =  mbedtls_mpi_exp_mod(result, a, b, c, (mu_bn_t *) ctx);
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_80M);
+    return ret;
+}
+static inline int mu_bn_a_mul_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, mu_bn_t *c, mu_bn_ctx_t *ctx)
+{
+    mbedtls_mpi tmp_result;
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_160M);
+    mbedtls_mpi_init(&tmp_result);
+    mbedtls_mpi_mul_mpi(&tmp_result, a, b);
+    mbedtls_mpi_mod_mpi(result, &tmp_result, c);
+    mbedtls_mpi_free(&tmp_result);
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_80M);
+    return 0;
+}
+#else
 static inline int mu_bn_a_exp_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, mu_bn_t *c, mu_bn_ctx_t *ctx)
 {
     return mbedtls_mpi_exp_mod(result, a, b, c, (mu_bn_t *) ctx);
@@ -175,17 +199,24 @@ static inline int mu_bn_a_mul_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, m
 {
     return esp_mpi_mul_mpi_mod(result, a, b, c);
 }
+#endif /* !CONFIG_IDF_TARGET_ESP8266 */
 
 static inline int mu_bn_a_add_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, mu_bn_t *c, mu_bn_ctx_t *ctx)
 {
     int     res;
     mbedtls_mpi  t;
+#ifdef CONFIG_IDF_TARGET_ESP8266
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_160M);
+#endif
     mbedtls_mpi_init(&t);
     res = mbedtls_mpi_add_mpi(&t, a, b);
     if (res == 0) {
         res = mbedtls_mpi_mod_mpi(result, &t, c);
     }
     mbedtls_mpi_free(&t);
+#ifdef CONFIG_IDF_TARGET_ESP8266
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_80M);
+#endif
     return res;
 }
 #endif /* BIGNUM_MBEDTLS */

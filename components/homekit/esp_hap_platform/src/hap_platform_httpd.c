@@ -73,7 +73,9 @@ esp_err_t hap_platform_httpd_set_sess_ctx(httpd_req_t *req, void *ctx, httpd_fre
     if (req) {
         req->sess_ctx = ctx;
         req->free_ctx =  free_ctx;
+#ifndef CONFIG_IDF_TARGET_ESP8266
         req->ignore_sess_ctx_changes = ignore_ctx_changes;
+#endif
         return ESP_OK;
     }
     return ESP_FAIL;
