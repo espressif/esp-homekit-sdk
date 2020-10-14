@@ -1,6 +1,6 @@
 [submodule "components/homekit/json_parser/upstream"]
 	path = components/homekit/json_parser/upstream
-	url = https://github.com/shahpiyushv/json_parser.git
+	url = https://github.com/espressif/json_parser.git
 [submodule "components/homekit/json_generator/upstream"]
 	path = components/homekit/json_generator/upstream
-	url = https://github.com/shahpiyushv/json_generator.git
+	url = https://github.com/espressif/json_generator.git

@@ -33,6 +33,8 @@ git clone --recursive https://github.com/espressif/esp-homekit-sdk.git
 
 > Note the --recursive option. This is required to pull in the JSON dependencies into esp-homekit-sdk. In case you have already cloned the repository without this option, execute this to pull in the submodules:
 > `git submodule update --init --recursive`
+>
+> If you had already cloned the repository and submodules earlier, you may have to execute `git submodule sync --recursive` once since the submodule paths have changed.
 
 
 ### Compile and Flash
