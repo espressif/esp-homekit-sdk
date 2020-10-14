@@ -84,7 +84,7 @@ static EventGroupHandle_t wifi_event_group;
 
 #define PROV_TRANSPORT_SOFTAP   "softap"
 #define PROV_TRANSPORT_BLE      "ble"
-#define QRCODE_BASE_URL     "https://api.qrserver.com/v1/create-qr-code/"
+#define QRCODE_BASE_URL     "https://espressif.github.io/esp-jumpstart/qrcode.html"
 
 #define CREDENTIALS_NAMESPACE   "rmaker_creds"
 #define RANDOM_NVS_KEY          "random"

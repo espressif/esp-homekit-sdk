@@ -12,7 +12,7 @@
 
 static const char *TAG = "app_hap_setup_payload";
 
-#define QRCODE_BASE_URL     "https://api.qrserver.com/v1/create-qr-code/"
+#define QRCODE_BASE_URL     "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
 
 esp_err_t app_hap_setup_payload(char *setup_code, char *setup_id, bool wac_support, hap_cid_t cid)
 {
