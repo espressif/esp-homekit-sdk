@@ -1312,6 +1312,7 @@ static void hap_send_notification(void *arg)
     }
     /* If no characteristic notifications are pending, just exit */
     if (i == 0) {
+	hap_platform_memory_free(char_arr); // Memory leak!
         return;
     }
     num_notif_chars = i;
