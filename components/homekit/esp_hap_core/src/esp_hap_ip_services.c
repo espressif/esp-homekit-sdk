@@ -1310,7 +1310,7 @@ static void hap_send_notification(void *arg)
             break;
         }
     }
-    /* If no characteristic notifications are pending, just exit */
+    /* If no characteristic notifications are pending, free char_arr and exit */ 
     if (i == 0) {
 	hap_platform_memory_free(char_arr); 
         return;
