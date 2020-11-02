@@ -932,7 +932,7 @@ hap_char_t *hap_char_filter_life_level_create(float filter_life_level)
         return NULL;
     }
 
-    hap_char_int_set_constraints(hc, 0, 100, 1);
+    hap_char_float_set_constraints(hc, 0.0, 100.0, 1.0);
 
     return hc;
 }
