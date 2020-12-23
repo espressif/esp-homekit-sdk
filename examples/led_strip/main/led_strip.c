@@ -46,6 +46,8 @@
 #define	NEOPIXEL_SK6812
 #define	NEOPIXEL_RMT_CHANNEL    RMT_CHANNEL_2
 
+static const char *TAG = "led strip";
+
 static	void test_neopixel()
 {
 	pixel_settings_t px;
@@ -55,7 +57,6 @@ static	void test_neopixel()
 
 	rc = neopixel_init(NEOPIXEL_PORT, NEOPIXEL_RMT_CHANNEL);
 	ESP_LOGI(TAG, "neopixel_init rc = %d", rc);
-	usleep(1000*1000);
 
 	for	( i = 0 ; i < NR_LED ; i ++ )	{
 		pixels[i] = 0;
@@ -142,7 +143,6 @@ static hsp_t s_hsb_val;
 static uint16_t s_brightness;
 static bool s_on = false;
 
-static const char *TAG = "led strip";
 
 /**
  * @brief transform led_strip's "RGB" and other parameter
