@@ -91,7 +91,7 @@ static	void test_neopixel()
 #endif
 	px.brightness = 0x80;
 	for	( int j = 0 ; j < NR_LED ; j ++ )	{
-		np_set_pixel_rgbw(&px, j , 0, 100, 0, 200);
+		np_set_pixel_rgbw(&px, j , 100, 0, 0, 50);
 	}
 
 	np_show(&px, NEOPIXEL_RMT_CHANNEL);
