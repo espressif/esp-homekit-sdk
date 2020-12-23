@@ -92,7 +92,7 @@ static	void test_neopixel()
 	px.timings.reset.duration1 = 900;
 #endif
 	px.brightness = 0x80;
-	for	( int j = 0 ; j < NR_LED ; j ++ )	{
+	for	( i = 1 ; i < NR_LED - 1 ; i ++ )	{
 		np_set_pixel_rgbw(&px, j , 100, 0, 0, 50);
 	}
 
@@ -133,8 +133,10 @@ static bool s_on = false;
 void hsi2rgbw(float H, float S, float I, int rgbw[]) {
   int r, g, b, w;
   float cos_h, cos_1047_h;
-  H = fmod(H,360); // cycle H around to 0-360 degrees
+//   H = fmod(H,360); // cycle H around to 0-360 degrees
   H = 3.14159*H/(float)180; // Convert to radians.
+  S = S / 100;
+  I = I / 100;
   S = S>0?(S<1?S:1):0; // clamp S and I to interval [0,1]
   I = I>0?(I<1?I:1):0;
   
