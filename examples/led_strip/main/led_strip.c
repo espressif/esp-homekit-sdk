@@ -60,7 +60,7 @@ static	void test_neopixel()
 	rc = neopixel_init(NEOPIXEL_PORT, NEOPIXEL_RMT_CHANNEL);
 	ESP_LOGI(TAG, "neopixel_init rc = %d", rc);
 
-	for	( i = 1 ; i < NR_LED - 1 ; i ++ )	{
+	for	( i = 0 ; i < NR_LED; i ++ )	{
 		pixels[i] = 0;
 	}
 	px.pixels = (uint8_t *)pixels;
@@ -93,7 +93,7 @@ static	void test_neopixel()
 #endif
 	px.brightness = 0x80;
 	for	( i = 1 ; i < NR_LED - 1 ; i ++ )	{
-		np_set_pixel_rgbw(&px, j , 100, 0, 0, 50);
+		np_set_pixel_rgbw(&px, i , 100, 0, 0, 50);
 	}
 
 	np_show(&px, NEOPIXEL_RMT_CHANNEL);
