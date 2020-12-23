@@ -172,10 +172,10 @@ void hsi2rgbw(float H, float S, float I, int rgbw[]) {
 /**
  * @brief transform led_strip's "RGB" and other parameter
  */
-static void led_strip_set_aim(uint32_t h, uint32_t s, uint32_t r, uint32_t g, uint32_t b)
+static void led_strip_set_aim(uint32_t h, uint32_t s, uint32_t v)
 {
     int rgbw[4];
-    hsi2rgbw(h,s,(r+g+b)/765, &rgbw);
+    hsi2rgbw(h, s, v, &rgbw);
     for	( int j = 0 ; j < NR_LED ; j ++ )	{
 		np_set_pixel_rgbw(&px, j , rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
 	}
@@ -193,59 +193,13 @@ static void led_strip_set_aim(uint32_t h, uint32_t s, uint32_t r, uint32_t g, ui
 /**
  * @brief transform led_strip's "HSV" to "RGB"
  */
-static bool led_strip_set_hsb2rgb(uint16_t h, uint16_t s, uint16_t v, rgb_t *rgb)
+static bool led_strip_set_hsb2rgb(uint16_t h, uint16_t s, uint16_t v)
 {
-    bool res = true;
-    uint16_t hi, F, P, Q, T;
-
-    if (!rgb)
-        return false;
-
     if (h > 360) return false;
     if (s > 100) return false;
     if (v > 100) return false;
 
-    hi = (h / 60) % 6;
-    F = 100 * h / 60 - 100 * hi;
-    P = v * (100 - s) / 100;
-    Q = v * (10000 - F * s) / 10000;
-    T = v * (10000 - s * (100 - F)) / 10000;
-
-    switch (hi) {
-    case 0:
-        rgb->r = v;
-        rgb->g = T;
-        rgb->b = P;
-        break;
-    case 1:
-        rgb->r = Q;
-        rgb->g = v;
-        rgb->b = P;
-        break;
-    case 2:
-        rgb->r = P;
-        rgb->g = v;
-        rgb->b = T;
-        break;
-    case 3:
-        rgb->r = P;
-        rgb->g = Q;
-        rgb->b = v;
-        break;
-    case 4:
-        rgb->r = T;
-        rgb->g = P;
-        rgb->b = v;
-        break;
-    case 5:
-        rgb->r = v;
-        rgb->g = P;
-        rgb->b = Q;
-        break;
-    default:
-        return false;
-    }
-    return res;
+    return true;
 }
 
 /**
@@ -253,13 +207,12 @@ static bool led_strip_set_hsb2rgb(uint16_t h, uint16_t s, uint16_t v, rgb_t *rgb
  */
 static bool led_strip_set_aim_hsv(uint16_t h, uint16_t s, uint16_t v)
 {
-    rgb_t rgb_tmp;
-    bool ret = led_strip_set_hsb2rgb(h, s, v, &rgb_tmp);
+    bool ret = led_strip_set_hsb2rgb(h, s, v);
 
     if (ret == false)
         return false;
 
-    led_strip_set_aim(h, s, rgb_tmp.r, rgb_tmp.g, rgb_tmp.b);
+    led_strip_set_aim(h, s, v);
 
     return true;
 }
