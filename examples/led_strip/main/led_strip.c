@@ -287,7 +287,7 @@ void led_strip_init(void)
     // ledc_channel.channel = LEDC_CHANNEL_2;
     // ledc_channel.gpio_num = LEDC_IO_2;
     // ledc_channel_config(&ledc_channel);
-    test_neopixel();
+    // test_neopixel();
 }
 
 /**
