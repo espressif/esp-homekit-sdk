@@ -181,8 +181,6 @@ static void lightbulb_thread_entry(void *p)
     ESP_LOGI(TAG, "Accessory is paired with %d controllers",
                 hap_get_paired_controller_count());
 
-    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, aws_iot_ip_event_cb, NULL);
-
     /* TODO: Do the actual hardware initialization here */
 
     /* For production accessories, the setup code shouldn't be programmed on to
@@ -213,6 +211,12 @@ static void lightbulb_thread_entry(void *p)
 
     /* Initialize Wi-Fi */
     app_wifi_init();
+
+    /* Register an event handler so that AWS IoT can be started after the station
+     * interface gets an IP Address.
+     * All event handlers should be registered only after app_wifi_init()
+     */
+    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, aws_iot_ip_event_cb, NULL);
 
     /* After all the initializations are done, start the HAP core */
     hap_start();
