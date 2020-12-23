@@ -54,7 +54,7 @@ static	void test_neopixel()
 	int		rc;
 
 	rc = neopixel_init(NEOPIXEL_PORT, NEOPIXEL_RMT_CHANNEL);
-	ESP_LOGE("main", "neopixel_init rc = %d", rc);
+	ESP_LOGI(TAG, "neopixel_init rc = %d", rc);
 	usleep(1000*1000);
 
 	for	( i = 0 ; i < NR_LED ; i ++ )	{
