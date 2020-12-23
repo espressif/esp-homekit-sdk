@@ -48,17 +48,19 @@
 
 static const char *TAG = "led strip";
 
-static	void test_neopixel()
-{
-	pixel_settings_t px;
+#define DEG_TO_RAD(X) (M_PI*(X)/180)
+
+pixel_settings_t px;
 	uint32_t		pixels[NR_LED];
 	int		i;
 	int		rc;
 
+static	void test_neopixel()
+{
 	rc = neopixel_init(NEOPIXEL_PORT, NEOPIXEL_RMT_CHANNEL);
 	ESP_LOGI(TAG, "neopixel_init rc = %d", rc);
 
-	for	( i = 0 ; i < NR_LED ; i ++ )	{
+	for	( i = 1 ; i < NR_LED - 1 ; i ++ )	{
 		pixels[i] = 0;
 	}
 	px.pixels = (uint8_t *)pixels;
@@ -134,12 +136,18 @@ static bool s_on = false;
  */
 static void led_strip_set_aim(uint32_t r, uint32_t g, uint32_t b, uint32_t cw, uint32_t ww, uint32_t period)
 {
+    for	( int j = 0 ; j < NR_LED ; j ++ )	{
+		np_set_pixel_rgbw(&px, j , r, g, b, ww);
+	}
+
+	np_show(&px, NEOPIXEL_RMT_CHANNEL);
     // ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, r);
     // ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, g);
     // ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_2, b);
     // ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
     // ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
     // ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_2);
+    
 }
 
 /**
