@@ -90,29 +90,13 @@ static	void test_neopixel()
 	px.timings.reset.duration1 = 900;
 #endif
 	px.brightness = 0x80;
+	for	( int j = 0 ; j < NR_LED ; j ++ )	{
+		np_set_pixel_rgbw(&px, j , 0, 100, 0, 200);
+	}
+
 	np_show(&px, NEOPIXEL_RMT_CHANNEL);
 
-	int fact = 1;
-	while (1) {
-		usleep(1000*10);
-		//ESP_LOGE("main", "fact = %d", fact);
-		for	( int j = 0 ; j < NR_LED ; j ++ )	{
-			np_set_pixel_rgbw(&px, j , i, i, i, i);
-		}
-		np_show(&px, NEOPIXEL_RMT_CHANNEL);
-		if ( fact > 0 ) {
-			i += 1;
-		} else {
-			i -= 1;
-		}
-		if	( i == 255 )	{
-			fact = -1;
-		} else
-		if	( i == 0 )	{
-			fact = 1;
-		}
-	}
-    ESP_LOGI(TAG, "getting here rc = %d", rc);
+    ESP_LOGI(TAG, "getting here (end) rc = %d", rc);
 
 }
 
