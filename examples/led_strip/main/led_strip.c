@@ -130,14 +130,54 @@ static hsp_t s_hsb_val;
 static uint16_t s_brightness;
 static bool s_on = false;
 
+void hsi2rgbw(float H, float S, float I, int rgbw[]) {
+  int r, g, b, w;
+  float cos_h, cos_1047_h;
+  H = fmod(H,360); // cycle H around to 0-360 degrees
+  H = 3.14159*H/(float)180; // Convert to radians.
+  S = S>0?(S<1?S:1):0; // clamp S and I to interval [0,1]
+  I = I>0?(I<1?I:1):0;
+  
+  if(H < 2.09439) {
+    cos_h = cos(H);
+    cos_1047_h = cos(1.047196667-H);
+    r = S*255*I/3*(1+cos_h/cos_1047_h);
+    g = S*255*I/3*(1+(1-cos_h/cos_1047_h));
+    b = 0;
+    w = 255*(1-S)*I;
+  } else if(H < 4.188787) {
+    H = H - 2.09439;
+    cos_h = cos(H);
+    cos_1047_h = cos(1.047196667-H);
+    g = S*255*I/3*(1+cos_h/cos_1047_h);
+    b = S*255*I/3*(1+(1-cos_h/cos_1047_h));
+    r = 0;
+    w = 255*(1-S)*I;
+  } else {
+    H = H - 4.188787;
+    cos_h = cos(H);
+    cos_1047_h = cos(1.047196667-H);
+    b = S*255*I/3*(1+cos_h/cos_1047_h);
+    r = S*255*I/3*(1+(1-cos_h/cos_1047_h));
+    g = 0;
+    w = 255*(1-S)*I;
+  }
+  
+  rgbw[0]=r;
+  rgbw[1]=g;
+  rgbw[2]=b;
+  rgbw[3]=w;
 
+}
 /**
  * @brief transform led_strip's "RGB" and other parameter
  */
-static void led_strip_set_aim(uint32_t r, uint32_t g, uint32_t b, uint32_t cw, uint32_t ww, uint32_t period)
+static void led_strip_set_aim(uint32_t h, uint32_t s, uint32_t r, uint32_t g, uint32_t b)
 {
+    int rgbw[4];
+    hsi2rgbw(h,s,r+g+b, &rgbw);
     for	( int j = 0 ; j < NR_LED ; j ++ )	{
-		np_set_pixel_rgbw(&px, j , r, g, b, ww);
+		np_set_pixel_rgbw(&px, j , rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
 	}
 
 	np_show(&px, NEOPIXEL_RMT_CHANNEL);
@@ -219,8 +259,7 @@ static bool led_strip_set_aim_hsv(uint16_t h, uint16_t s, uint16_t v)
     if (ret == false)
         return false;
 
-    led_strip_set_aim(rgb_tmp.r * PWM_TARGET_DUTY / 100, rgb_tmp.g * PWM_TARGET_DUTY / 100,
-            rgb_tmp.b * PWM_TARGET_DUTY / 100, (100 - s) * 5000 / 100, v * 2000 / 100, 1000);
+    led_strip_set_aim(h, s, rgb_tmp.r, rgb_tmp.g, rgb_tmp.b);
 
     return true;
 }
