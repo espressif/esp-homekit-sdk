@@ -175,7 +175,7 @@ void hsi2rgbw(float H, float S, float I, int rgbw[]) {
 static void led_strip_set_aim(uint32_t h, uint32_t s, uint32_t r, uint32_t g, uint32_t b)
 {
     int rgbw[4];
-    hsi2rgbw(h,s,(r+g+b)*255, &rgbw);
+    hsi2rgbw(h,s,(r+g+b)/765, &rgbw);
     for	( int j = 0 ; j < NR_LED ; j ++ )	{
 		np_set_pixel_rgbw(&px, j , rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
 	}
