@@ -112,6 +112,7 @@ static	void test_neopixel()
 			fact = 1;
 		}
 	}
+    ESP_LOGI(TAG, "getting here rc = %d", rc);
 
 }
 
@@ -287,7 +288,7 @@ void led_strip_init(void)
     // ledc_channel.channel = LEDC_CHANNEL_2;
     // ledc_channel.gpio_num = LEDC_IO_2;
     // ledc_channel_config(&ledc_channel);
-    // test_neopixel();
+    test_neopixel();
 }
 
 /**
