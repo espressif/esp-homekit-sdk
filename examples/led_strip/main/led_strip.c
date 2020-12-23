@@ -39,7 +39,7 @@
 #include "neopixel.c"
 
 
-#define	NEOPIXEL_PORT	22
+#define	NEOPIXEL_PORT	18
 #define	NR_LED		7
 //#define	NR_LED		3
 //#define	NEOPIXEL_WS2812
