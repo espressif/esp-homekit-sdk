@@ -345,7 +345,7 @@ static int led_strip_write(hap_write_data_t write_data[], int count,
     char* name = (char *)serv_priv;
     ESP_LOGI(TAG, "Write called for Accessory %s", name);
     int i, ret = HAP_SUCCESS;
-    int num = (int) name[sizeof(name) - 1];
+    int num = name[sizeof(name) - 1] - '0';
     hap_write_data_t *write;
     for (i = 0; i < count; i++) {
         write = &write_data[i];
