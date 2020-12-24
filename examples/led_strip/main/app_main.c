@@ -342,10 +342,10 @@ static int accessory_identify(hap_acc_t *ha)
 static int led_strip_write(hap_write_data_t write_data[], int count,
         void *serv_priv, void *write_priv)
 {
-    char* name = (char *)serv_priv;
-    ESP_LOGI(TAG, "Write called for Accessory %s", name);
-    int i, ret = HAP_SUCCESS;
+    char* name = serv_priv;
     int num = name[sizeof(name) - 1] - '0';
+    ESP_LOGI(TAG, "Write called for Accessory %d", num);
+    int i, ret = HAP_SUCCESS;
     hap_write_data_t *write;
     for (i = 0; i < count; i++) {
         write = &write_data[i];
