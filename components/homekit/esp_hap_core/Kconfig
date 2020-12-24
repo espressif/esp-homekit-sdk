@@ -7,4 +7,15 @@ menu "HomeKit"
             If you have the MFi variant of the SDK, set this to true to use features like
             HW authentication, software token authentication and WAC.
 
+    config HAP_SESSION_KEEP_ALIVE_ENABLE
+        bool "Enable Keep Alive on sessions"
+        default n
+        depends on !HAP_MFI_ENABLE
+        help
+            Enable Keep Alive on Controller Sessions so that stale connections do not stay
+            open indefinitely. Note that the HomeKit Specs do not allow this and so, this
+            should be enabled at your own risk. Even without this option, the HomeKit core
+            will close stale session using the HTTP Server's Least Recently Used (LRU) purge
+            logic.
+
 endmenu

@@ -173,6 +173,28 @@ static int hap_http_pair_verify_handler(httpd_req_t *req)
                         sizeof(timeout)) < 0) {
                  ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "setsockopt on pair verified socket failed for SO_SNDTIMEO");
             }
+#ifdef CONFIG_HAP_SESSION_KEEP_ALIVE_ENABLE
+            ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Enabling Keep-Alive on Pair Verify Session");
+            const int yes = 1; /* enable sending keepalive probes for socket */
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes)) < 0 ) {
+                 ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "setsockopt on pair verified socket failed for SO_KEEPALIVE");
+            }
+
+            const int idle = 180; /* 180 sec idle before start sending probes */
+            if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle)) < 0) {
+                 ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "setsockopt on pair verified socket failed for TCP_KEEPIDLE");
+            }
+
+            const int interval = 30; /* 30 sec between probes */
+            if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval)) < 0) {
+                 ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "setsockopt on pair verified socket failed for TCP_KEEPINTVL");
+            }
+
+            const int maxpkt = 4; /* Drop connection after 4 probes without response */
+            if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(maxpkt)) < 0) {
+                 ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "setsockopt on pair verified socket failed for TCP_KEEPCNT");
+            }
+#endif
             hap_platform_httpd_set_sess_ctx(req, ctx, hap_free_session, true);
             httpd_sess_set_send_override(hap_priv.server, fd, hap_httpd_send);
             httpd_sess_set_recv_override(hap_priv.server, fd, hap_httpd_recv);
