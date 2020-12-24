@@ -106,7 +106,7 @@ static int bridge_identify(hap_acc_t *ha)
  */
 static int accessory_identify(hap_acc_t *ha)
 {
-    hap_serv_t *hs = hap_acc_get_serv_by_uuid(ha, HAP_SERV_UUID_ACCESSORY_INFORMATION);
+    hap_serv_t *hs = hap_acc_get_serv_by_uuid(ha, HAP_SERV_UUID_LIGHTBULB);
     hap_char_t *hc = hap_serv_get_char_by_uuid(hs, HAP_CHAR_UUID_NAME);
     const hap_val_t *val = hap_char_get_val(hc);
     char *name = val->s;
@@ -441,8 +441,15 @@ static void bridge_thread_entry(void *p)
 
         /* Create the Lightbulb Service. Include the "name" since this is a user visible service  */
         service = hap_serv_lightbulb_create(false);
-        hap_serv_add_char(service, hap_char_name_create(accessory_name));
-
+        // hap_serv_add_char(service, hap_char_name_create(accessory_name));
+        /* Add the optional characteristic to the Light Bulb Service */
+        int ret = hap_serv_add_char(service, hap_char_name_create("My Light"));
+        ret |= hap_serv_add_char(service, hap_char_brightness_create(50));
+        ret |= hap_serv_add_char(service, hap_char_hue_create(180));
+        ret |= hap_serv_add_char(service, hap_char_saturation_create(100));
+        if (ret != HAP_SUCCESS) {
+            ESP_LOGE(TAG, "Failed to add optional characteristics to LightBulb");
+        }
         /* Set the Accessory name as the Private data for the service,
          * so that the correct accessory can be identified in the
          * write callback
