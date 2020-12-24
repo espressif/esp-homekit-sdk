@@ -62,7 +62,7 @@ void led_strip_deinit(void);
  *
  * @return none
  */
-int led_strip_set_on(int num, bool value);
+int led_strip_set_on(int num, bool value, bool *segment_on, bool *leds_changed, uint32_t *segment_intensity, uint32_t *segment_intensity_off);
 
 /**
  * @brief set the saturation of the lowlevel LED_STRIP
@@ -73,7 +73,7 @@ int led_strip_set_on(int num, bool value);
  *     - 0 : OK
  *     - others : fail
  */
-int led_strip_set_saturation(int num, float value);
+int led_strip_set_saturation(int num, float value, bool *segment_on, bool *leds_changed, uint32_t *segment_saturation);
 
 /**
  * @brief set the hue of the lowlevel LED_STRIP
@@ -84,7 +84,7 @@ int led_strip_set_saturation(int num, float value);
  *     - 0 : OK
  *     - others : fail
  */
-int led_strip_set_hue(int num, float value);
+int led_strip_set_hue(int num, float value, bool *segment_on, bool *leds_changed, uint32_t *segment_hue);
 
 /**
  * @brief set the brightness of the lowlevel LED_STRIP
@@ -95,6 +95,6 @@ int led_strip_set_hue(int num, float value);
  *     - 0 : OK
  *     - others : fail
  */
-int led_strip_set_brightness(int num, int value);
+int led_strip_set_brightness(int num, int value, bool *segment_on, bool *leds_changed, uint32_t *segment_intensity);
 
 #endif /* _LED_STRIP_H_ */
