@@ -397,40 +397,40 @@ static void led_strip_thread_entry1(void *arg)
     /* Add the Accessory to the HomeKit Database */
     hap_add_bridged_accessory(accessory, 1);
 
-    /* Register a common button for reset Wi-Fi network and reset to factory.
-     */
-    reset_key_init(RESET_GPIO);
+//     /* Register a common button for reset Wi-Fi network and reset to factory.
+//      */
+//     reset_key_init(RESET_GPIO);
 
-    /* TODO: Do the actual hardware initialization here */
+//     /* TODO: Do the actual hardware initialization here */
 
-    /* For production accessories, the setup code shouldn't be programmed on to
-     * the device. Instead, the setup info, derived from the setup code must
-     * be used. Use the factory_nvs_gen utility to generate this data and then
-     * flash it into the factory NVS partition.
-     *
-     * By default, the setup ID and setup info will be read from the factory_nvs
-     * Flash partition and so, is not required to set here explicitly.
-     *
-     * However, for testing purpose, this can be overridden by using hap_set_setup_code()
-     * and hap_set_setup_id() APIs, as has been done here.
-     */
-#ifdef CONFIG_EXAMPLE_USE_HARDCODED_SETUP_CODE
-    /* Unique Setup code of the format xxx-xx-xxx. Default: 111-22-333 */
-    hap_set_setup_code(CONFIG_EXAMPLE_SETUP_CODE);
-    /* Unique four character Setup Id. Default: ES32 */
-    hap_set_setup_id(CONFIG_EXAMPLE_SETUP_ID);
-#ifdef CONFIG_APP_WIFI_USE_WAC_PROVISIONING
-    app_hap_setup_payload(CONFIG_EXAMPLE_SETUP_CODE, CONFIG_EXAMPLE_SETUP_ID, true, cfg.cid);
-#else
-    app_hap_setup_payload(CONFIG_EXAMPLE_SETUP_CODE, CONFIG_EXAMPLE_SETUP_ID, false, cfg.cid);
-#endif
-#endif
+//     /* For production accessories, the setup code shouldn't be programmed on to
+//      * the device. Instead, the setup info, derived from the setup code must
+//      * be used. Use the factory_nvs_gen utility to generate this data and then
+//      * flash it into the factory NVS partition.
+//      *
+//      * By default, the setup ID and setup info will be read from the factory_nvs
+//      * Flash partition and so, is not required to set here explicitly.
+//      *
+//      * However, for testing purpose, this can be overridden by using hap_set_setup_code()
+//      * and hap_set_setup_id() APIs, as has been done here.
+//      */
+// #ifdef CONFIG_EXAMPLE_USE_HARDCODED_SETUP_CODE
+//     /* Unique Setup code of the format xxx-xx-xxx. Default: 111-22-333 */
+//     hap_set_setup_code(CONFIG_EXAMPLE_SETUP_CODE);
+//     /* Unique four character Setup Id. Default: ES32 */
+//     hap_set_setup_id(CONFIG_EXAMPLE_SETUP_ID);
+// #ifdef CONFIG_APP_WIFI_USE_WAC_PROVISIONING
+//     app_hap_setup_payload(CONFIG_EXAMPLE_SETUP_CODE, CONFIG_EXAMPLE_SETUP_ID, true, cfg.cid);
+// #else
+//     app_hap_setup_payload(CONFIG_EXAMPLE_SETUP_CODE, CONFIG_EXAMPLE_SETUP_ID, false, cfg.cid);
+// #endif
+// #endif
 
-    /* Enable Hardware MFi authentication (applicable only for MFi variant of SDK) */
-    hap_enable_mfi_auth(HAP_MFI_AUTH_HW);
+//     /* Enable Hardware MFi authentication (applicable only for MFi variant of SDK) */
+//     hap_enable_mfi_auth(HAP_MFI_AUTH_HW);
 
-    /* After all the initializations are done, start the HAP core */
-    hap_start();
+//     /* After all the initializations are done, start the HAP core */
+//     hap_start();
 
     /* The task ends here. The read/write callbacks will be invoked by the HAP Framework */
     vTaskDelete(NULL);
