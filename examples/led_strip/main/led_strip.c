@@ -174,11 +174,17 @@ void hsi2rgbw(float H, float S, float I, int rgbw[]) {
 /**
  * @brief transform led_strip's "RGB" and other parameter
  */
-static void led_strip_set_aim(uint32_t h, uint32_t s, uint32_t v)
-{
+static void led_strip_set_aim(int num, uint32_t h, uint32_t s, uint32_t v)
+{   
+    int start = 1;
+    int end = NR_LED;
+    if(num == 0){
+        start = 0;
+        end = 1;
+    }
     int rgbw[4];
     hsi2rgbw(h, s, v, &rgbw);
-    for	( int j = 0 ; j < NR_LED ; j ++ )	{
+    for	( int j = start ; j < end ; j ++ )	{
 		np_set_pixel_rgbw(&px, j , rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
 	}
 
@@ -207,14 +213,14 @@ static bool led_strip_set_hsb2rgb(uint16_t h, uint16_t s, uint16_t v)
 /**
  * @brief set the led_strip's "HSV"
  */
-static bool led_strip_set_aim_hsv(uint16_t h, uint16_t s, uint16_t v)
+static bool led_strip_set_aim_hsv(int num, uint16_t h, uint16_t s, uint16_t v)
 {
     bool ret = led_strip_set_hsb2rgb(h, s, v);
 
     if (ret == false)
         return false;
 
-    led_strip_set_aim(h, s, v);
+    led_strip_set_aim(num, h, s, v);
 
     return true;
 }
@@ -224,7 +230,16 @@ static bool led_strip_set_aim_hsv(uint16_t h, uint16_t s, uint16_t v)
  */
 static void led_strip_update()
 {
-    led_strip_set_aim_hsv(s_hsb_val.h, s_hsb_val.s, s_hsb_val.b);
+    led_strip_set_aim_hsv(0, s_hsb_val.h, s_hsb_val.s, s_hsb_val.b);
+}
+
+
+/**
+ * @brief update the led_strip's state
+ */
+static void led_strip_update1()
+{
+    led_strip_set_aim_hsv(1, s_hsb_val.h, s_hsb_val.s, s_hsb_val.b);
 }
 
 

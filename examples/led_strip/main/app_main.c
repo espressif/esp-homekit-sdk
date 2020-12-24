@@ -144,23 +144,197 @@ static int led_strip_write(hap_write_data_t write_data[], int count,
     return ret;
 }
 
+/* Callback for handling writes on the Light Bulb Service
+ */
+static int led_strip_write1(hap_write_data_t write_data[], int count,
+        void *serv_priv, void *write_priv)
+{
+    int i, ret = HAP_SUCCESS;
+    hap_write_data_t *write;
+    for (i = 0; i < count; i++) {
+        write = &write_data[i];
+        /* Setting a default error value */
+        *(write->status) = HAP_STATUS_VAL_INVALID;
+        if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+            ESP_LOGI(TAG, "Received Write for Light %s", write->val.b ? "On" : "Off");
+            if (led_strip_set_on(write->val.b) == 0) {
+                *(write->status) = HAP_STATUS_SUCCESS;
+            }
+        } else if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_BRIGHTNESS)) {
+            ESP_LOGI(TAG, "Received Write for Light Brightness %d", write->val.i);
+            if (led_strip_set_brightness(write->val.i) == 0) {
+                *(write->status) = HAP_STATUS_SUCCESS;
+            }
+        } else if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_HUE)) {
+            ESP_LOGI(TAG, "Received Write for Light Hue %f", write->val.f);
+            if (led_strip_set_hue(write->val.f) == 0) {
+                *(write->status) = HAP_STATUS_SUCCESS;
+            }
+        } else if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_SATURATION)) {
+            ESP_LOGI(TAG, "Received Write for Light Saturation %f", write->val.f);
+            if (led_strip_set_saturation(write->val.f) == 0) {
+                *(write->status) = HAP_STATUS_SUCCESS;
+            }
+        } else {
+            *(write->status) = HAP_STATUS_RES_ABSENT;
+        }
+        /* If the characteristic write was successful, update it in hap core
+         */
+        if (*(write->status) == HAP_STATUS_SUCCESS) {
+            hap_char_update_val(write->hc, &(write->val));
+        } else {
+            /* Else, set the return value appropriately to report error */
+            ret = HAP_FAIL;
+        }
+    }
+    return ret;
+}
+
 /*The main thread for handling the Light Bulb Accessory */
 static void led_strip_thread_entry(void *arg)
 {
     hap_acc_t *accessory;
     hap_serv_t *service;
 
-    /* Initialize the HAP core */
-    hap_init(HAP_TRANSPORT_WIFI);
+    /* Initialise the mandatory parameters for Accessory which will be added as
+     * the mandatory services internally
+     */
+    // char num_c[5];
+    // sprintf(num_c, "%d", num);
+    // char name[20] = "Led-Strip-";
+    // strcat(name, num_c);
+    hap_acc_cfg_t cfg = {
+        .name = "Led-Strip0",
+        .manufacturer = "Espressif",
+        .model = "EspLight01",
+        .serial_num = "0",
+        .fw_rev = "0.9.0",
+        .hw_rev = "1.0",
+        .pv = "1.1.0",
+        .identify_routine = light_identify,
+        .cid = HAP_CID_LIGHTING,
+    };
+
+    /* Create accessory object */
+    accessory = hap_acc_create(&cfg);
+    if (!accessory) {
+        ESP_LOGE(TAG, "Failed to create accessory");
+        goto light_err;
+    }
+
+    /* Add a dummy Product Data */
+    uint8_t product_data[] = {'E','S','P','3','2','H','A','P'};
+    hap_acc_add_product_data(accessory, product_data, sizeof(product_data));
+
+    /* Create the Light Bulb Service. Include the "name" since this is a user visible service  */
+    service = hap_serv_lightbulb_create(true);
+    if (!service) {
+        ESP_LOGE(TAG, "Failed to create lightbulb Service");
+        goto light_err;
+    }
+
+    /* Add the optional characteristic to the Light Bulb Service */
+    int ret = hap_serv_add_char(service, hap_char_name_create("My Light"));
+    ret |= hap_serv_add_char(service, hap_char_brightness_create(50));
+    ret |= hap_serv_add_char(service, hap_char_hue_create(180));
+    ret |= hap_serv_add_char(service, hap_char_saturation_create(100));
+    
+    if (ret != HAP_SUCCESS) {
+        ESP_LOGE(TAG, "Failed to add optional characteristics to led_strip");
+        goto light_err;
+    }
+    /* Set the write callback for the service */
+    hap_serv_set_write_cb(service, led_strip_write1);
+    
+    /* Add the Light Bulb Service to the Accessory Object */
+    hap_acc_add_serv(accessory, service);
+
+#ifdef CONFIG_FIRMWARE_SERVICE
+    /*  Required for server verification during OTA, PEM format as string  */
+    static char server_cert[] = {};
+    hap_fw_upgrade_config_t ota_config = {
+        .server_cert_pem = server_cert,
+    };
+    /* Create and add the Firmware Upgrade Service, if enabled.
+     * Please refer the FW Upgrade documentation under components/homekit/extras/include/hap_fw_upgrade.h
+     * and the top level README for more information.
+     */
+    service = hap_serv_fw_upgrade_create(&ota_config);
+    if (!service) {
+        ESP_LOGE(TAG, "Failed to create Firmware Upgrade Service");
+        goto light_err;
+    }
+    hap_acc_add_serv(accessory, service);
+#endif
+
+    /* Add the Accessory to the HomeKit Database */
+    hap_add_accessory(accessory);
+
+    /* Register a common button for reset Wi-Fi network and reset to factory.
+     */
+    // reset_key_init(RESET_GPIO);
+
+    /* TODO: Do the actual hardware initialization here */
+
+    /* For production accessories, the setup code shouldn't be programmed on to
+     * the device. Instead, the setup info, derived from the setup code must
+     * be used. Use the factory_nvs_gen utility to generate this data and then
+     * flash it into the factory NVS partition.
+     *
+     * By default, the setup ID and setup info will be read from the factory_nvs
+     * Flash partition and so, is not required to set here explicitly.
+     *
+     * However, for testing purpose, this can be overridden by using hap_set_setup_code()
+     * and hap_set_setup_id() APIs, as has been done here.
+     */
+#ifdef CONFIG_EXAMPLE_USE_HARDCODED_SETUP_CODE
+    /* Unique Setup code of the format xxx-xx-xxx. Default: 111-22-333 */
+    hap_set_setup_code(CONFIG_EXAMPLE_SETUP_CODE);
+    /* Unique four character Setup Id. Default: ES32 */
+    hap_set_setup_id(CONFIG_EXAMPLE_SETUP_ID);
+#ifdef CONFIG_APP_WIFI_USE_WAC_PROVISIONING
+    app_hap_setup_payload(CONFIG_EXAMPLE_SETUP_CODE, CONFIG_EXAMPLE_SETUP_ID, true, cfg.cid);
+#else
+    app_hap_setup_payload(CONFIG_EXAMPLE_SETUP_CODE, CONFIG_EXAMPLE_SETUP_ID, false, cfg.cid);
+#endif
+#endif
+
+    /* Enable Hardware MFi authentication (applicable only for MFi variant of SDK) */
+    hap_enable_mfi_auth(HAP_MFI_AUTH_HW);
+
+    // /* Initialize Wi-Fi */
+    // app_wifi_init();
+
+    /* After all the initializations are done, start the HAP core */
+    hap_start();
+    // /* Start Wi-Fi */
+    // app_wifi_start(portMAX_DELAY);
+
+    /* The task ends here. The read/write callbacks will be invoked by the HAP Framework */
+    vTaskDelete(NULL);
+
+light_err:
+    hap_acc_delete(accessory);
+    vTaskDelete(NULL);
+}
+
+static void led_strip_thread_entry1(void *arg)
+{
+    hap_acc_t *accessory;
+    hap_serv_t *service;
 
     /* Initialise the mandatory parameters for Accessory which will be added as
      * the mandatory services internally
      */
+    // char num_c[5];
+    // sprintf(num_c, "%d", num);
+    // char name[20] = "Led-Strip-";
+    // strcat(name, num_c);
     hap_acc_cfg_t cfg = {
-        .name = "Esp-Light",
+        .name = "Led-Strip1",
         .manufacturer = "Espressif",
         .model = "EspLight01",
-        .serial_num = "abcdefg",
+        .serial_num = "1",
         .fw_rev = "0.9.0",
         .hw_rev = "1.0",
         .pv = "1.1.0",
@@ -223,9 +397,6 @@ static void led_strip_thread_entry(void *arg)
     /* Add the Accessory to the HomeKit Database */
     hap_add_accessory(accessory);
 
-    /* Initialize the Light Bulb Hardware */
-    led_strip_init();
-
     /* Register a common button for reset Wi-Fi network and reset to factory.
      */
     reset_key_init(RESET_GPIO);
@@ -258,13 +429,8 @@ static void led_strip_thread_entry(void *arg)
     /* Enable Hardware MFi authentication (applicable only for MFi variant of SDK) */
     hap_enable_mfi_auth(HAP_MFI_AUTH_HW);
 
-    /* Initialize Wi-Fi */
-    app_wifi_init();
-
     /* After all the initializations are done, start the HAP core */
     hap_start();
-    /* Start Wi-Fi */
-    app_wifi_start(portMAX_DELAY);
 
     /* The task ends here. The read/write callbacks will be invoked by the HAP Framework */
     vTaskDelete(NULL);
@@ -276,6 +442,24 @@ light_err:
 
 void app_main()
 {
+
+
+    /* Initialize the HAP core */
+    hap_init(HAP_TRANSPORT_WIFI);
+
+    /* Initialize the Light Bulb Hardware */
+    led_strip_init();
+
+
+
+    /* Initialize Wi-Fi */
+    app_wifi_init();
+
+    /* Start Wi-Fi */
+    app_wifi_start(portMAX_DELAY);
+
     xTaskCreate(led_strip_thread_entry, LED_STRIP_TASK_NAME, LED_STRIP_TASK_STACKSIZE,
+            NULL, LED_STRIP_TASK_PRIORITY, NULL);
+    xTaskCreate(led_strip_thread_entry1, LED_STRIP_TASK_NAME, LED_STRIP_TASK_STACKSIZE,
             NULL, LED_STRIP_TASK_PRIORITY, NULL);
 }
