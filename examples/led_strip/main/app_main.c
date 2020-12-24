@@ -395,7 +395,7 @@ static void led_strip_thread_entry1(void *arg)
 #endif
 
     /* Add the Accessory to the HomeKit Database */
-    hap_add_accessory(accessory);
+    hap_add_bridged_accessory(accessory, 1);
 
     /* Register a common button for reset Wi-Fi network and reset to factory.
      */
