@@ -228,19 +228,11 @@ static bool led_strip_set_aim_hsv(int num, uint16_t h, uint16_t s, uint16_t v)
 /**
  * @brief update the led_strip's state
  */
-static void led_strip_update()
+static void led_strip_update(int num)
 {
-    led_strip_set_aim_hsv(0, s_hsb_val.h, s_hsb_val.s, s_hsb_val.b);
+    led_strip_set_aim_hsv(num, s_hsb_val.h, s_hsb_val.s, s_hsb_val.b);
 }
 
-
-/**
- * @brief update the led_strip's state
- */
-static void led_strip_update1()
-{
-    led_strip_set_aim_hsv(1, s_hsb_val.h, s_hsb_val.s, s_hsb_val.b);
-}
 
 
 /**
@@ -305,8 +297,9 @@ void led_strip_deinit(void)
 /**
  * @brief turn on/off the lowlevel led_strip
  */
-int led_strip_set_on(bool value)
+int led_strip_set_on(int num, bool value)
 {
+    ESP_LOGI(TAG, "led_strip_set_on num : %d", num);
     ESP_LOGI(TAG, "led_strip_set_on : %s", value == true ? "true" : "false");
 
     if (value == true) {
@@ -317,7 +310,7 @@ int led_strip_set_on(bool value)
         s_hsb_val.b = 0;
         s_on = false;
     }
-    led_strip_update();
+    led_strip_update(num);
 
     return 0;
 }
@@ -325,13 +318,13 @@ int led_strip_set_on(bool value)
 /**
  * @brief set the saturation of the lowlevel led_strip
  */
-int led_strip_set_saturation(float value)
+int led_strip_set_saturation(int num, float value)
 {
     ESP_LOGI(TAG, "led_strip_set_saturation : %f", value);
 
     s_hsb_val.s = value;
     if (true == s_on)
-        led_strip_update();
+        led_strip_update(num);
 
     return 0;
 }
@@ -339,13 +332,13 @@ int led_strip_set_saturation(float value)
 /**
  * @brief set the hue of the lowlevel led_strip
  */
-int led_strip_set_hue(float value)
+int led_strip_set_hue(int num, float value)
 {
     ESP_LOGI(TAG, "led_strip_set_hue : %f", value);
 
     s_hsb_val.h = value;
     if (true == s_on)
-        led_strip_update();
+        led_strip_update(num);
 
     return 0;
 }
@@ -353,14 +346,14 @@ int led_strip_set_hue(float value)
 /**
  * @brief set the brightness of the lowlevel led_strip
  */
-int led_strip_set_brightness(int value)
+int led_strip_set_brightness(int num, int value)
 {
     ESP_LOGI(TAG, "led_strip_set_brightness : %d", value);
 
     s_hsb_val.b = value;
     s_brightness = s_hsb_val.b; 
     if (true == s_on)
-        led_strip_update();
+        led_strip_update(num);
 
     return 0;
 }
