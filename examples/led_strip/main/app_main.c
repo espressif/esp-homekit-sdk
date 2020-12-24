@@ -515,10 +515,11 @@ static void leds_thread_entry(void *p)
 	np_show(&px, NEOPIXEL_RMT_CHANNEL);
     
     ESP_LOGI(TAG, "getting here (end) rc = %d", rc);
-    while (1)
+    for(;;)
     {
         if(leds_changed)
         {
+            ESP_LOGI(TAG, "leds_changed %d", rc);
             for(int segment = 0; segment < NUM_LED_SEGMENTS - 1; segment++)
             {
                 int start_at_led = segment_center[segment];
