@@ -72,6 +72,10 @@ static const char *TAG = "HAP led_strip";
 /* Reset to factory if button is pressed and held for more than 10 seconds */
 #define RESET_TO_FACTORY_BUTTON_TIMEOUT     10
 
+QueueHandle_t led_queue;
+int queueSize = 5;
+
+
 
 
 /* The button "Boot" will be used as the Reset button for the example */
@@ -87,6 +91,8 @@ uint32_t segment_saturation[NUM_LED_SEGMENTS];
 uint32_t segment_intensity[NUM_LED_SEGMENTS];
 bool segment_on[NUM_LED_SEGMENTS];
 uint32_t segment_intensity_off[NUM_LED_SEGMENTS];
+
+uint32_t segments[NUM_LED_SEGMENTS][3];
 
 bool leds_changed = false;
 
@@ -436,24 +442,58 @@ static int led_strip_write(hap_write_data_t write_data[], int count,
         *(write->status) = HAP_STATUS_VAL_INVALID;
         if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
             ESP_LOGI(TAG, "Received Write for Light %s", write->val.b ? "On" : "Off");
-            if (led_strip_set_on(num, write->val.b, &segment_on[num], &leds_changed, &segment_intensity[num], &segment_intensity_off[num]) == 0) {
+            if(segment_on[num] == true && write->val.b == false){
+                segment_intensity_off[num] = segments[num][2];
+                segments[num][2] = 0;
+                segment_on[num] = false;
+                xQueueSend(led_queue,&segments,(TickType_t )(1000/portTICK_PERIOD_MS));
                 *(write->status) = HAP_STATUS_SUCCESS;
             }
+            if(segment_on[num] == false && write->val.b == true){
+                segments[num][2] = segment_intensity_off[num];
+                segment_on[num] = true;
+                xQueueSend(led_queue,&segments,(TickType_t )(1000/portTICK_PERIOD_MS));
+                *(write->status) = HAP_STATUS_SUCCESS;
+            }
+            // if (led_strip_set_on(num, write->val.b, &segment_on[num], &leds_changed, &segment_intensity[num], &segment_intensity_off[num]) == 0) {
+            //     *(write->status) = HAP_STATUS_SUCCESS;
+            // }
         } else if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_BRIGHTNESS)) {
             ESP_LOGI(TAG, "Received Write for Light Brightness %d", write->val.i);
-            if (led_strip_set_brightness(num, write->val.i, &segment_on[num], &leds_changed, &segment_intensity[num]) == 0) {
+            segments[num][2] = write->val.i / 100;
+    
+            if (segment_on[num] == true)
+            {
+                xQueueSend(led_queue,&segments,(TickType_t )(1000/portTICK_PERIOD_MS));
                 *(write->status) = HAP_STATUS_SUCCESS;
             }
+            // if (led_strip_set_brightness(num, write->val.i, &segment_on[num], &leds_changed, &segment_intensity[num]) == 0) {
+            //     *(write->status) = HAP_STATUS_SUCCESS;
+            // }
         } else if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_HUE)) {
             ESP_LOGI(TAG, "Received Write for Light Hue %f", write->val.f);
-            if (led_strip_set_hue(num, write->val.f, &segment_on[num], &leds_changed, &segment_hue[num]) == 0) {
+            segments[num][0] = write->val.f;
+    
+            if (segment_on[num] == true)
+            {
+                xQueueSend(led_queue,&segments,(TickType_t )(1000/portTICK_PERIOD_MS));
                 *(write->status) = HAP_STATUS_SUCCESS;
             }
+            // if (led_strip_set_hue(num, write->val.f, &segment_on[num], &leds_changed, &segment_hue[num]) == 0) {
+            //     *(write->status) = HAP_STATUS_SUCCESS;
+            // }
         } else if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_SATURATION)) {
             ESP_LOGI(TAG, "Received Write for Light Saturation %f", write->val.f);
-            if (led_strip_set_saturation(num, write->val.f, &segment_on[num], &leds_changed, &segment_saturation[num]) == 0) {
+            segments[num][1] = write->val.f;
+    
+            if (segment_on[num] == true)
+            {
+                xQueueSend(led_queue,&segments,(TickType_t )(1000/portTICK_PERIOD_MS));
                 *(write->status) = HAP_STATUS_SUCCESS;
             }
+            // if (led_strip_set_saturation(num, write->val.f, &segment_on[num], &leds_changed, &segment_saturation[num]) == 0) {
+            //     *(write->status) = HAP_STATUS_SUCCESS;
+            // }
         } else {
             *(write->status) = HAP_STATUS_RES_ABSENT;
         }
@@ -517,30 +557,31 @@ static void leds_thread_entry(void *p)
     ESP_LOGI(TAG, "getting here (end) rc = %d", rc);
     for(;;)
     {
-        if(leds_changed == true)
+        xQueueReceive(led_queue,&segments,(TickType_t )(1000/portTICK_PERIOD_MS));
+        ESP_LOGI(TAG, "leds_changed %d", rc);
+        for(int segment = 0; segment < NUM_LED_SEGMENTS - 1; segment++)
         {
-            ESP_LOGI(TAG, "leds_changed %d", rc);
-            for(int segment = 0; segment < NUM_LED_SEGMENTS - 1; segment++)
+            int start_at_led = segment_center[segment];
+            int end_at_led = segment_center[segment + 1];
+            int leds_in_segment = end_at_led - start_at_led;
+            int start_at_0 = 1;
+            if(segment  == 0){
+                start_at_0 = 0;
+            }
+            for(int led = start_at_0; led < leds_in_segment; led++)
             {
-                int start_at_led = segment_center[segment];
-                int end_at_led = segment_center[segment + 1];
-                int leds_in_segment = end_at_led - start_at_led;
-                int start_at_0 = 1;
-                if(segment  == 0){
-                    start_at_0 = 0;
-                }
-                for(int led = start_at_0; led < leds_in_segment; led++){
-                    uint32_t current_hue = segment_hue[start_at_led] + (segment_hue[end_at_led] - segment_hue[start_at_led]) / leds_in_segment * led;
-                    uint32_t current_saturation = segment_saturation[start_at_led] + (segment_saturation[end_at_led] - segment_saturation[start_at_led]) / leds_in_segment * led;
-                    uint32_t current_intensity = segment_intensity[start_at_led] + (segment_intensity[end_at_led] - segment_intensity[start_at_led]) / leds_in_segment * led;
-                    int current_led = start_at_led + led;
-                    int rgbw[4];
-                    hsi2rgbw(current_hue, current_saturation, current_intensity, &rgbw);
-                    np_set_pixel_rgbw(&px, current_led, rgbw[0], rgbw[1], rgbw[2], rgbw[3]);
-                }
+                uint32_t current_hue = segments[segment][0] + (segments[segment + 1][0] - segments[segment][0]) / leds_in_segment * led;
+                uint32_t current_saturation = segments[segment][1] + (segments[segment + 1][1] - segments[segment][1]) / leds_in_segment * led;
+                uint32_t current_intensity = segments[segment][2] + (segments[segment + 1][2] - segments[segment][2]) / leds_in_segment * led;
+                int current_led = start_at_led + led;
+                int rgbw[4];
+                hsi2rgbw(current_hue, current_saturation, current_intensity, &rgbw);
+                np_set_pixel_rgbw(&px, current_led, rgbw[0], rgbw[1], rgbw[2], rgbw[3]);                
             }
         }
+        vTaskDelay(10/portTICK_PERIOD_MS); //wait for a second
     }
+    
 }
 /*The main thread for handling the Bridge Accessory */
 static void bridge_thread_entry(void *p)
@@ -666,6 +707,7 @@ static void bridge_thread_entry(void *p)
 
 void app_main()
 {
+    led_queue = xQueueCreate( queueSize, sizeof( int ) );
     xTaskCreate(leds_thread_entry, LED_STRIP_LEDS_TASK_NAME, LED_STRIP_TASK_STACKSIZE, NULL, LED_STRIP_TASK_PRIORITY, NULL);
     xTaskCreate(bridge_thread_entry, LED_STRIP_BRIDGE_TASK_NAME, LED_STRIP_TASK_STACKSIZE, NULL, LED_STRIP_TASK_PRIORITY, NULL);
 }
