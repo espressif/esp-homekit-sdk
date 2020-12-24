@@ -517,7 +517,7 @@ static void leds_thread_entry(void *p)
     ESP_LOGI(TAG, "getting here (end) rc = %d", rc);
     for(;;)
     {
-        if(leds_changed)
+        if(leds_changed == true)
         {
             ESP_LOGI(TAG, "leds_changed %d", rc);
             for(int segment = 0; segment < NUM_LED_SEGMENTS - 1; segment++)
