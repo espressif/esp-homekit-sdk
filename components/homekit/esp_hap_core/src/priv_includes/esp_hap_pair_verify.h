@@ -30,6 +30,7 @@ int hap_pair_verify_process(void **ctx, uint8_t *buf, int inlen, int bufsize, in
 uint8_t hap_pair_verify_get_state(void *ctx);
 void hap_free_session(void *session);
 int hap_get_ctrl_session_index(hap_secure_session_t *session);
-void hap_close_ctrl_sessions(hap_ctrl_data_t *ctrl);
+int hap_close_session(hap_secure_session_t *session);
+void hap_close_sessions_of_ctrl(hap_ctrl_data_t *ctrl);
 void hap_close_all_sessions();
 #endif /* _HAP_PAIR_VERIFY_H_ */

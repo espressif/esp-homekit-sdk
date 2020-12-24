@@ -72,7 +72,7 @@ void hap_remove_all_controllers()
 	int i;
 	for (i = 0; i < HAP_MAX_CONTROLLERS; i++) {
 		if (hap_priv.controllers[i].valid) {
-			hap_close_ctrl_sessions(&hap_priv.controllers[i]);
+			hap_close_sessions_of_ctrl(&hap_priv.controllers[i]);
 			hap_controller_remove(&hap_priv.controllers[i]);
 		}
 	}
@@ -91,7 +91,7 @@ static int hap_process_pair_remove(uint8_t *buf, int inlen, int bufsize, int *ou
 
 	ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Removing Controller %s", ctrl_id);
 	hap_ctrl_data_t *ctrl = hap_get_controller(ctrl_id);
-	hap_close_ctrl_sessions(ctrl);
+	hap_close_sessions_of_ctrl(ctrl);
 	hap_controller_remove(ctrl);
 
 	if (!is_admin_paired()) {
