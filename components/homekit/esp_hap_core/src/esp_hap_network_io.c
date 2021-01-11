@@ -95,12 +95,12 @@ int hap_encrypt_data(hap_encrypt_frame_t *frame, hap_secure_session_t *session,
 	return 2 + buflen + 16; /* Total length of the encrypted data */
 }
 
-int hap_decrypt_error(hap_secure_session_t *session)
+static int hap_session_error(hap_secure_session_t *session)
 {
 	ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Decryption error/Connection lost. Marking session as invalid");
 	if (session) {
 		session->state = STATE_INVALID;
-        hap_close_ctrl_sessions(session->ctrl);
+        hap_close_session(session);
 	}
 	return HAP_FAIL;
 }
@@ -116,7 +116,7 @@ int hap_decrypt_data(hap_decrypt_frame_t *frame, hap_secure_session_t *session,
 	}
 	if ((frame->pkt_size - frame->bytes_read) == 0) {
 		if (read_fn(frame->data, 2, context) < 2)
-			return hap_decrypt_error(session);
+			return hap_session_error(session);
 
 		frame->pkt_size = get_u16_le(frame->data);
 		frame->bytes_read = 0;
@@ -125,7 +125,7 @@ int hap_decrypt_data(hap_decrypt_frame_t *frame, hap_secure_session_t *session,
 			int num_bytes = read_fn(&frame->data[frame->bytes_read],
 					bytes_to_read, context);
 			if (num_bytes <= 0)
-				return hap_decrypt_error(session);
+				return hap_session_error(session);
 			bytes_to_read -= num_bytes;
 			frame->bytes_read += num_bytes;
 		}
@@ -140,7 +140,7 @@ int hap_decrypt_data(hap_decrypt_frame_t *frame, hap_secure_session_t *session,
                     &frame->data[frame->bytes_read], aad, 2, newnonce, session->decrypt_key);
         if (ret != 0) { 
 			ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "AEAD decryption failure");
-			return hap_decrypt_error(session);
+			return hap_session_error(session);
 		}
 		frame->bytes_read = 0;
 		/* Increment nonce after every frame */

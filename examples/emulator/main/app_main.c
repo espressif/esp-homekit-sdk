@@ -251,10 +251,6 @@ static void emulator_thread_entry(void *p)
     /* Register an event handler for HomeKit specific events */
     hap_register_event_handler(emulator_hap_event_handler);
 
-    /* Register system event handler */
-    esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &hap_emulator_system_event_handler, NULL);
-    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &hap_emulator_system_event_handler, NULL);
-
     /* Query the controller count (just for information) */
     ESP_LOGI(TAG, "Accessory is paired with %d controllers",
                 hap_get_paired_controller_count());
@@ -284,6 +280,10 @@ static void emulator_thread_entry(void *p)
 
     /* Initialize Wi-Fi */
     app_wifi_init();
+
+    /* Register system event handler */
+    esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &hap_emulator_system_event_handler, NULL);
+    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &hap_emulator_system_event_handler, NULL);
 
     /* After all the initializations are done, start the HAP core */
     if (hap_start() != ESP_OK) {

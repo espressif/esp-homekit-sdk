@@ -272,9 +272,6 @@ static void fan_thread_entry(void *p)
      */
     reset_key_init(RESET_GPIO);
 
-    /* Register an event handler for HomeKit specific events */
-    esp_event_handler_register(HAP_EVENT, ESP_EVENT_ANY_ID, &fan_hap_event_handler, NULL);
-
     /* Query the controller count (just for information) */
     ESP_LOGI(TAG, "Accessory is paired with %d controllers",
                 hap_get_paired_controller_count());
@@ -309,6 +306,11 @@ static void fan_thread_entry(void *p)
 
     /* Initialize Wi-Fi */
     app_wifi_init();
+
+    /* Register an event handler for HomeKit specific events.
+     * All event handlers should be registered only after app_wifi_init()
+     */
+    esp_event_handler_register(HAP_EVENT, ESP_EVENT_ANY_ID, &fan_hap_event_handler, NULL);
 
     /* After all the initializations are done, start the HAP core */
     hap_start();

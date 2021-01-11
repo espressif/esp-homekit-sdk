@@ -61,7 +61,23 @@ typedef struct {
 	hap_secure_session_t *session;
 } pair_verify_ctx_t;
 
-void hap_close_ctrl_sessions(hap_ctrl_data_t *ctrl)
+void hap_close_session(hap_secure_session_t *session)
+{
+    if (!session)
+        return;
+    int i;
+    for (i = 0; i < HAP_MAX_SESSIONS; i++) {
+        if (!hap_priv.sessions[i])
+            continue;
+        if (hap_priv.sessions[i] == session) {
+            hap_report_event(HAP_EVENT_CTRL_DISCONNECTED, (session->ctrl->info.id),
+                    sizeof((session->ctrl->info.id)));
+            httpd_sess_trigger_close(hap_priv.server, hap_priv.sessions[i]->conn_identifier);
+        }
+    }
+}
+
+void hap_close_sessions_of_ctrl(hap_ctrl_data_t *ctrl)
 {
 	if (!ctrl)
 		return;
@@ -95,7 +111,7 @@ void hap_close_all_sessions()
 	for (i = 0; i < HAP_MAX_SESSIONS; i++) {
 		if (hap_priv.sessions[i]) {
 			ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Closing Session");
-            hap_close_ctrl_sessions(hap_priv.sessions[i]->ctrl);
+            hap_close_session(hap_priv.sessions[i]);
         }
 	}
 }
