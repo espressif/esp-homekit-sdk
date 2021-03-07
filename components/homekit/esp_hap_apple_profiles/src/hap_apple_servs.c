@@ -133,7 +133,7 @@ err:
     return NULL;
 }
 
-hap_serv_t *hap_serv_lock_management_create(hap_tlv8_val_t *lock_control_point, char * version)
+hap_serv_t *hap_serv_lock_management_create(hap_tlv8_val_t *lock_control_point, char *version)
 {
     hap_serv_t *hs = hap_serv_create(HAP_SERV_UUID_LOCK_MANAGEMENT);
     if (!hs) {
@@ -560,8 +560,8 @@ err:
     return NULL;
 }
 
-hap_serv_t *hap_serv_air_purifier_create(uint8_t active, uint8_t curr_air_purifier_state, uint8_t
-        targ_air_purifier_state)
+hap_serv_t *hap_serv_air_purifier_create(uint8_t active, uint8_t curr_air_purifier_state,
+        uint8_t targ_air_purifier_state)
 {
     hap_serv_t *hs = hap_serv_create(HAP_SERV_UUID_AIR_PURIFIER);
     if (!hs) {
@@ -607,8 +607,8 @@ err:
     return NULL;
 }
 
-hap_serv_t *hap_serv_humidifier_dehumidifier_create(uint8_t active, float curr_rel_humidity, uint8_t
-        curr_humid_dehumid_state, uint8_t targ_humid_dehumid_state)
+hap_serv_t *hap_serv_humidifier_dehumidifier_create(uint8_t active, float curr_rel_humidity,
+        uint8_t curr_humid_dehumid_state, uint8_t targ_humid_dehumid_state)
 {
     hap_serv_t *hs = hap_serv_create(HAP_SERV_UUID_HUMIDIFIER_DEHUMIDIFIER);
     if (!hs) {

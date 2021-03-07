@@ -830,7 +830,6 @@ hap_char_t *hap_char_carbon_dioxide_peak_level_create(float carbon_dioxide_peak_
     return hc;
 }
 
-
 /* Char: Air Quality */
 hap_char_t *hap_char_air_quality_create(uint8_t air_quality)
 {
@@ -860,7 +859,7 @@ hap_char_t *hap_char_accessory_flags_create(uint32_t flags)
 hap_char_t *hap_char_product_data_create(hap_data_val_t *product_data)
 {
     hap_char_t *hc = hap_char_data_create(HAP_CHAR_UUID_PRODUCT_DATA,
-                                            HAP_CHAR_PERM_PR , product_data);
+                                          HAP_CHAR_PERM_PR, product_data);
     if (!hc) {
         return NULL;
     }
@@ -1153,7 +1152,7 @@ hap_char_t *hap_char_voc_density_create(float voc_density)
 hap_char_t *hap_char_service_label_index_create(uint8_t service_label_index)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_SERVICE_LABEL_INDEX,
-                                         HAP_CHAR_PERM_PR, service_label_index);
+                                           HAP_CHAR_PERM_PR, service_label_index);
     if (!hc) {
         return NULL;
     }
@@ -1165,7 +1164,7 @@ hap_char_t *hap_char_service_label_index_create(uint8_t service_label_index)
 hap_char_t *hap_char_service_label_namespace_create(uint8_t service_label_namespace)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_SERVICE_LABEL_NAMESPACE,
-                                         HAP_CHAR_PERM_PR, service_label_namespace);
+                                           HAP_CHAR_PERM_PR, service_label_namespace);
     if (!hc) {
         return NULL;
     }
@@ -1221,7 +1220,7 @@ hap_char_t *hap_char_target_heater_cooler_state_create(uint8_t targ_heater_coole
 hap_char_t *hap_char_current_humidifier_dehumidifier_state_create(uint8_t curr_humidifier_dehumidifier_state)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_CURRENT_HUMIDIFIER_DEHUMIDIFIER_STATE,
-                                         HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, curr_humidifier_dehumidifier_state);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, curr_humidifier_dehumidifier_state);
     if (!hc) {
         return NULL;
     }
@@ -1235,7 +1234,7 @@ hap_char_t *hap_char_current_humidifier_dehumidifier_state_create(uint8_t curr_h
 hap_char_t *hap_char_target_humidifier_dehumidifier_state_create(uint8_t targ_humidifier_dehumidifier_state)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_TARGET_HUMIDIFIER_DEHUMIDIFIER_STATE,
-                                         HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV, targ_humidifier_dehumidifier_state);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV, targ_humidifier_dehumidifier_state);
     if (!hc) {
         return NULL;
     }
@@ -1293,7 +1292,7 @@ hap_char_t *hap_char_relative_humidity_humidifier_threshold_create(float rel_hum
 hap_char_t *hap_char_program_mode_create(uint8_t prog_mode)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_PROGRAM_MODE,
-                                         HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, prog_mode);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, prog_mode);
     if (!hc) {
         return NULL;
     }
@@ -1307,7 +1306,7 @@ hap_char_t *hap_char_program_mode_create(uint8_t prog_mode)
 hap_char_t *hap_char_in_use_create(uint8_t in_use)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_IN_USE,
-                                         HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, in_use);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, in_use);
     if (!hc) {
         return NULL;
     }
@@ -1349,7 +1348,7 @@ hap_char_t *hap_char_remaining_duration_create(uint32_t remaining_duration)
 hap_char_t *hap_char_valve_type_create(uint8_t valve_type)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_VALVE_TYPE,
-                                         HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, valve_type);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, valve_type);
     if (!hc) {
         return NULL;
     }
@@ -1363,7 +1362,7 @@ hap_char_t *hap_char_valve_type_create(uint8_t valve_type)
 hap_char_t *hap_char_is_configured_create(uint8_t is_configured)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_IS_CONFIGURED,
-                                         HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV, is_configured);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV, is_configured);
     if (!hc) {
         return NULL;
     }
@@ -1391,8 +1390,8 @@ hap_char_t *hap_char_status_jammed_create(uint8_t status_jammed)
 hap_char_t *hap_char_administrator_only_access_create(bool administrator_only_access)
 {
     hap_char_t *hc = hap_char_bool_create(HAP_CHAR_UUID_ADMINISTRATOR_ONLY_ACCESS,
-                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV, 
-                                           administrator_only_access);
+                                          HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV,
+                                          administrator_only_access);
     if (!hc) {
         return NULL;
     }
@@ -1404,7 +1403,7 @@ hap_char_t *hap_char_administrator_only_access_create(bool administrator_only_ac
 hap_char_t *hap_char_lock_control_point_create(hap_tlv8_val_t *lock_control_point)
 {
     hap_char_t *hc = hap_char_tlv8_create(HAP_CHAR_UUID_LOCK_CONTROL_POINT,
-                                           HAP_CHAR_PERM_PW , lock_control_point);
+                                          HAP_CHAR_PERM_PW, lock_control_point);
     if (!hc) {
         return NULL;
     }
@@ -1416,7 +1415,7 @@ hap_char_t *hap_char_lock_control_point_create(hap_tlv8_val_t *lock_control_poin
 hap_char_t *hap_char_lock_last_known_action_create(uint8_t lock_last_known_action)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_LOCK_LAST_KNOWN_ACTION,
-                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV , lock_last_known_action);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, lock_last_known_action);
     if (!hc) {
         return NULL;
     }
@@ -1430,8 +1429,8 @@ hap_char_t *hap_char_lock_last_known_action_create(uint8_t lock_last_known_actio
 hap_char_t *hap_char_lock_management_auto_security_timeout_create(uint32_t lock_management_auto_security_timeout)
 {
     hap_char_t *hc = hap_char_uint32_create(HAP_CHAR_UUID_LOCK_MANAGEMENT_AUTO_SECURITY_TIMEOUT,
-                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV, 
-                                           lock_management_auto_security_timeout);
+                                            HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV,
+                                            lock_management_auto_security_timeout);
     if (!hc) {
         return NULL;
     }
@@ -1445,7 +1444,7 @@ hap_char_t *hap_char_lock_management_auto_security_timeout_create(uint32_t lock_
 hap_char_t *hap_char_logs_create(hap_tlv8_val_t *logs)
 {
     hap_char_t *hc = hap_char_tlv8_create(HAP_CHAR_UUID_LOGS,
-                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV , logs);
+                                          HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, logs);
     if (!hc) {
         return NULL;
     }
@@ -1457,7 +1456,7 @@ hap_char_t *hap_char_logs_create(hap_tlv8_val_t *logs)
 hap_char_t *hap_char_air_particulate_density_create(float air_particulate_density)
 {
     hap_char_t *hc = hap_char_float_create(HAP_CHAR_UUID_AIR_PARTICULATE_DENSITY,
-                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV , air_particulate_density);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, air_particulate_density);
     if (!hc) {
         return NULL;
     }
@@ -1471,7 +1470,7 @@ hap_char_t *hap_char_air_particulate_density_create(float air_particulate_densit
 hap_char_t *hap_char_air_particulate_size_create(uint8_t air_particulate_size)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_AIR_PARTICULATE_SIZE,
-                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV , air_particulate_size);
+                                           HAP_CHAR_PERM_PR | HAP_CHAR_PERM_EV, air_particulate_size);
     if (!hc) {
         return NULL;
     }
