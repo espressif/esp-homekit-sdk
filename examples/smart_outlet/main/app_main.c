@@ -68,7 +68,7 @@ static void outlet_in_use_key_init(uint32_t key_gpio_pin)
     /* Interrupt for both the edges  */
     io_conf.intr_type = GPIO_INTR_ANYEDGE;
     /* Bit mask of the pins */
-    io_conf.pin_bit_mask = 1 << key_gpio_pin;
+    io_conf.pin_bit_mask = 1ULL << key_gpio_pin;
     /* Set as input mode */
     io_conf.mode = GPIO_MODE_INPUT;
     /* Enable internal pull-up */
