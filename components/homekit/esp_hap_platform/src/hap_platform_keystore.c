@@ -25,19 +25,17 @@
 #include <nvs_flash.h>
 #include <string.h>
 
-#define HAP_PLATFORM_DEF_NVS_PARTITION          "nvs"
-#define HAP_PLATFORM_DEF_FACTORY_NVS_PARTITION  "factory_nvs"
 
 static const char *TAG = "hap_platform_keystore";
 
 char * hap_platform_keystore_get_nvs_partition_name()
 {
-    return HAP_PLATFORM_DEF_NVS_PARTITION;
+    return CONFIG_HAP_PLATFORM_DEF_NVS_RUNTIME_PARTITION;
 }
 
 char * hap_platform_keystore_get_factory_nvs_partition_name()
 {
-    return HAP_PLATFORM_DEF_FACTORY_NVS_PARTITION;
+    return CONFIG_HAP_PLATFORM_DEF_NVS_FACTORY_PARTITION;
 }
 
 #ifdef CONFIG_NVS_ENCRYPTION
