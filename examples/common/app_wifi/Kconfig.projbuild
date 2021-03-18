@@ -74,7 +74,7 @@ menu "App Wi-Fi"
         config APP_WIFI_PROV_TRANSPORT_BLE
             bool "BLE"
             select BT_ENABLED
-            depends on IDF_TARGET_ESP32
+            depends on IDF_TARGET_ESP32 || IDF_TARGET_ESP32C3
     endchoice
 
     config APP_WIFI_PROV_TRANSPORT

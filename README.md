@@ -2,9 +2,9 @@
 ## Introduction
 
 [HomeKit](https://developer.apple.com/homekit/) is a framework developed by Apple for communicating with and controlling connected accessories in a user’s home using iOS devices.
-ESP HomeKit SDK has been developed in-house by Espressif to build Apple HomeKit compatible accessories using ESP32/ESP32-S2/ESP8266 SoCs.
+ESP HomeKit SDK has been developed in-house by Espressif to build Apple HomeKit compatible accessories using ESP32/ESP32-S2/ESP32-C3/ESP8266 SoCs.
 
-> Note: If you want to use HomeKit for commercial products, please check [here](https://www.espressif.com/en/products/sdks/esp-homekit-sdk) for access to the MFi variant of this SDK. It has the exact same APIs as this and so, moving to it should be easy. However, commercial HomeKit products can be built only with ESP32/ESP32-S2 since ESP8266 cannot meet all the HomeKit Certification requirements.
+> Note: If you want to use HomeKit for commercial products, please check [here](https://www.espressif.com/en/products/sdks/esp-homekit-sdk) for access to the MFi variant of this SDK. It has the exact same APIs as this and so, moving to it should be easy. However, commercial HomeKit products can be built only with ESP32/ESP32-S2/ESP32-C3 since ESP8266 cannot meet all the HomeKit Certification requirements.
 
 > If you want to use a port of Apple's ADK instead, please check [here](https://github.com/espressif/esp-apple-homekit-adk)
 
@@ -39,14 +39,14 @@ git clone --recursive https://github.com/espressif/esp-homekit-sdk.git
 
 ### Compile and Flash
 
-You can use esp-homekit-sdk with any ESP32, ESP32-S2 or ESP8266 board (though we have tested only with the ESP32-DevKit-C, ESP32-S2-Saola-1 and ESP8266-DevKit-C). We have provided multiple examples for reference. Compile and flash as below (fan used as example):
+You can use esp-homekit-sdk with any ESP32, ESP32-S2, ESP32-C3 or ESP8266 board (though we have tested only with the ESP32-DevKit-C, ESP32-S2-Saola-1,  ESP32-C3-DevKit-M-1, ESP8266-DevKit-C). We have provided multiple examples for reference. Compile and flash as below (fan used as example):
 
-**For ESP32/ESP32-S2**
+**For ESP32/ESP32-S2/ESP32-C3**
 
 ```text
 $ cd /path/to/esp-homekit-sdk/examples/fan
 $ export ESPPORT=/dev/tty.SLAB_USBtoUART #Set your board's serial port here
-$ idf.py set-target <esp32/esp32s2>
+$ idf.py set-target <esp32/esp32s2/esp32c3>
 $ idf.py flash monitor
 ```
 

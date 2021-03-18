@@ -28,7 +28,11 @@
 #ifdef CONFIG_IDF_TARGET_ESP32S2
 #include "esp32s2/rom/ets_sys.h"
 #else
+#ifdef CONFIG_IDF_TARGET_ESP32C3
+#include "esp32c3/rom/ets_sys.h"
+#else
 #include "esp32/rom/ets_sys.h"
+#endif
 #endif
 
 #ifdef CONFIG_I2C_SOFTWARE
