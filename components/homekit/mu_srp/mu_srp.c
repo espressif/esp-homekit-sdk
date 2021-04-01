@@ -44,7 +44,7 @@ static inline void SHA512_hash(const uint8_t *bytes, unsigned int byte_count,
 }
 
 /************************* SRP Stuff */
-char N_3072[] = {
+static const char N_3072[] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC9, 0x0F, 0xDA, 0xA2, 0x21, 0x68, 0xC2,
 	0x34, 0xC4, 0xC6, 0x62, 0x8B, 0x80, 0xDC, 0x1C, 0xD1, 0x29, 0x02, 0x4E, 0x08, 0x8A, 0x67,
 	0xCC, 0x74, 0x02, 0x0B, 0xBE, 0xA6, 0x3B, 0x13, 0x9B, 0x22, 0x51, 0x4A, 0x08, 0x79, 0x8E,
@@ -160,7 +160,7 @@ static mu_bn_t *calculate_x(char *bytes_salt, int salt_len, const char *username
 	return mu_bn_new_from_bin((char *)digest, sizeof(digest));
 }
 
-static mu_bn_t *calculate_padded_hash(mu_srp_handle_t *hd, char *a, int len_a, char *b, int len_b)
+static mu_bn_t *calculate_padded_hash(mu_srp_handle_t *hd, const char *a, int len_a, char *b, int len_b)
 {
 	unsigned char digest[SHA512HashSize];
 	SHA512Context ctx;
