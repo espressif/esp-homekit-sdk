@@ -17,7 +17,7 @@ typedef struct mu_srp_handle {
 	 * the bytes_n simply points to the static array
 	 */
 	mu_bn_t *n;
-	char    *bytes_n;
+	const char    *bytes_n;
 	int      len_n;
 
 	/* g
