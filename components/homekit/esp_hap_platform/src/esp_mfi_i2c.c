@@ -56,8 +56,9 @@ static const char *TAG = "mfi_i2c";
 #define ACK_VAL                     0
 #define NACK_VAL                    1
 
-/* To use GPIOs 17/18 for the Hardware I2C, replace the numbers 26/27 below
- */
+static uint8_t i2c_master_sda_gpio = CONFIG_SDA_GPIO;
+static uint8_t i2c_master_scl_gpio = CONFIG_SCL_GPIO;
+
 #define I2C_MASTER_SDA_GPIO         CONFIG_SDA_GPIO
 #define I2C_MASTER_SCL_GPIO         CONFIG_SCL_GPIO
 
@@ -69,18 +70,26 @@ static const char *TAG = "mfi_i2c";
 /**
  * @brief Initialize I2C information
  */
+
+void esp_mfi_i2c_configure(uint8_t sda_gpio, uint8_t scl_gpio)
+{
+    i2c_master_sda_gpio = sda_gpio;
+    i2c_master_scl_gpio = scl_gpio;
+}
+
 int esp_mfi_i2c_init(void)
 {
     int ret = 0;
-    i2c_config_t conf;
     int i2c_master_port = I2C_MASTER_NUM;
 
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = I2C_MASTER_SDA_GPIO;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num = I2C_MASTER_SCL_GPIO;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
+    i2c_config_t conf = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = i2c_master_sda_gpio,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_io_num = i2c_master_scl_gpio,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = I2C_MASTER_FREQ_HZ,
+    };
 
     ret = i2c_param_config(i2c_master_port, &conf);
     if (ret != ESP_OK) {
