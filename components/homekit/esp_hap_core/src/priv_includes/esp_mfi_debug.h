@@ -27,6 +27,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <esp_log.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -58,6 +59,8 @@ extern "C"{
 #define ESP_MFI_DEBUG_ASSERT    4
 #define ESP_MFI_DEBUG_BLOCK     5
 
+static const char *TAG = "HAP mfi debug";
+    
 /**
  * @bref set the MFI debugging level
  *
@@ -91,21 +94,25 @@ uint32_t esp_mfi_get_debug_level(uint32_t level, uint32_t *color);
  * void ESP_MFI_DEBUG(unsigned int level, const char *fmt, ...);
  */
 #ifdef ESP_MFI_DEBUG_ENABLE
-#define ESP_MFI_DEBUG(l, fmt, ...)                                                          \
-    {                                                                                       \
-        uint32_t __color_LINE;                                                              \
-        if (l > esp_mfi_get_debug_level(l, &__color_LINE)) {                                \
-            printf("\e[1;%dm" fmt "\e[0m" ESP_MFI_DEBUG_FL,                         \
-                                __color_LINE,  ##__VA_ARGS__);                              \
-        }                                                                                   \
-    }
-#define ESP_MFI_DEBUG_INTR(l, fmt, ...)                                                          \
-    {                                                                                       \
-        uint32_t __color_LINE;                                                              \
-        if (l > esp_mfi_get_debug_level(l, &__color_LINE)) {                                \
-            ets_printf("\e[1;%dm" fmt "\e[0m" ESP_MFI_DEBUG_FL,                         \
-                                __color_LINE,  ##__VA_ARGS__);                              \
-        }                                                                                   \
+#define ESP_MFI_DEBUG(l, fmt, ...)  do {                                                        \
+    uint32_t __color_LINE;                                                                      \
+    
+    if (l > esp_mfi_get_debug_level(l, &__color_LINE)) {                                        \
+        if (l==ESP_MFI_DEBUG_ERR )          { ESP_LOGE(TAG, fmt, ##__VA_ARGS__); }              \
+        else if (l==ESP_MFI_DEBUG_WARN )    { ESP_LOGW(TAG, fmt, ##__VA_ARGS__); }              \
+        else if (l==ESP_MFI_DEBUG_ASSERT )  { ESP_LOGD(TAG, fmt, ##__VA_ARGS__); }              \
+        else if (l==ESP_MFI_DEBUG_BLOCK )   { ESP_LOGV(TAG, fmt, ##__VA_ARGS__); }              \
+        else                                { ESP_LOGI(TAG, fmt, ##__VA_ARGS__); }              \
+        }                                                                                       \
+    } while(0)                                                                                  \
+
+#define ESP_MFI_DEBUG_INTR(l, fmt, ...)                                                         \
+    {                                                                                           \
+        uint32_t __color_LINE;                                                                  \
+        if (l > esp_mfi_get_debug_level(l, &__color_LINE)) {                                    \
+            ets_printf("\e[1;%dm" fmt "\e[0m" ESP_MFI_DEBUG_FL,                                 \
+                                __color_LINE,  ##__VA_ARGS__);                                  \
+        }                                                                                       \
     }
 #else /* ESP_MFI_DEBUG_ENABLE */
 #define ESP_MFI_DEBUG(l, fmt, ...)
