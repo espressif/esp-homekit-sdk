@@ -38,6 +38,7 @@
 
 #include <app_wifi.h>
 #include <app_hap_setup_payload.h>
+#include "outlet.h"
 
 static const char *TAG = "HAP outlet";
 
@@ -45,9 +46,11 @@ static const char *TAG = "HAP outlet";
 #define SMART_OUTLET_TASK_STACKSIZE 4 * 1024
 #define SMART_OUTLET_TASK_NAME      "hap_outlet"
 
-#define OUTLET_IN_USE_GPIO GPIO_NUM_0
+#define OUTLET_IN_USE_GPIO CONFIG_OUTLET_IN_USE_GPIO
 
 #define ESP_INTR_FLAG_DEFAULT 0
+
+#define OUTLET_GPIO CONFIG_OUTLET_GPIO
 
 static xQueueHandle s_esp_evt_queue = NULL;
 /**
@@ -117,9 +120,10 @@ static int outlet_write(hap_write_data_t write_data[], int count,
         write = &write_data[i];
         if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
             ESP_LOGI(TAG, "Received Write. Outlet %s", write->val.b ? "On" : "Off");
-            /* TODO: Control Actual Hardware */
+            if (outlet_set_on(write->val.b) == 0) {
             hap_char_update_val(write->hc, &(write->val));
             *(write->status) = HAP_STATUS_SUCCESS;
+            }    
         } else {
             *(write->status) = HAP_STATUS_RES_ABSENT;
         }
@@ -237,5 +241,8 @@ void app_main()
     /* Create the application thread */
     xTaskCreate(smart_outlet_thread_entry, SMART_OUTLET_TASK_NAME, SMART_OUTLET_TASK_STACKSIZE,
                 NULL, SMART_OUTLET_TASK_PRIORITY, NULL);
+     gpio_pad_select_gpio(OUTLET_GPIO);
+    /* Set the GPIO as a push/pull output */
+    gpio_set_direction(OUTLET_GPIO, GPIO_MODE_OUTPUT); 
 }
 

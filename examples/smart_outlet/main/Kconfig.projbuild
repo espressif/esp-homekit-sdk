@@ -23,4 +23,27 @@ menu "Example Configuration"
         help
             Setup id to be used for HomeKot pairing, if hard-coded setup code is enabled.
 
+    config OUTLET_GPIO
+        int "Outlet GPIO number"
+        range 0 34
+        default 33
+        help
+            GPIO number (IOxx) to control relay pin.
+
+            Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used.
+            
+            Default is GPIO 33 (Built in Led on ESP32CAM by AI Thinker)
+
+            GPIOs 35-39 are input-only so cannot be used as outputs.
+            
+    config OUTLET_IN_USE_GPIO
+        int "Outlet in use GPIO number"
+        range 0 34
+        default 0
+        help
+            GPIO number (IOxx) to sense outlet in use.
+
+            Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to blink.
+
+            GPIOs 35-39 are input-only so cannot be used as outputs. 
 endmenu
