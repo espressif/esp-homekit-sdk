@@ -77,6 +77,18 @@ int esp_mfi_i2c_write(uint8_t slvaddr, uint8_t regaddr, uint8_t *buff, uint32_t 
  */
 int esp_mfi_i2c_read(uint8_t slvaddr, uint8_t regaddr, uint8_t *buff, uint32_t len);
 
+/**
+ * @brief Configure the I2C GPIOs
+ *
+ * The default MFi I2C SDA and SCL pins are set by CONFIG_SDA_GPIO and CONFIG_SCL_GPIO.
+ * However, some applications may need changing these at run time, based on some config
+ * data. This API have been provided for such use cases.
+ * This should be called before hap_start() and should not be called thereafter.
+ *
+ * @param sda_gpio The SDA GPIO
+ * @param scl_gpio The SCL GPIO
+ */
+void esp_mfi_i2c_configure(uint8_t sda_gpio, uint8_t scl_gpio);
 #ifdef __cplusplus
 }
 #endif

@@ -698,7 +698,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
             .data = NULL,
             .len = 0,
         };
-		hap_val_t val;
+		hap_val_t val = {0};
 		int json_ret = HAP_FAIL;
 		switch (hc->format) {
 			case HAP_CHAR_FORMAT_BOOL:
@@ -709,6 +709,14 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 			case HAP_CHAR_FORMAT_UINT32:
 			case HAP_CHAR_FORMAT_INT:
 				json_ret = json_obj_get_int(jctx, "value", &val.i);
+                /* For some characteristics, like Target Lock State, which is an enum
+                 * (mapped to uint8), it was seen that controlling via Siri sends true/false
+                 * as values, instead of 1/0. This additional code is for handling such
+                 * cases.
+                 */
+                if ((json_ret != HAP_SUCCESS) && (hc->format == HAP_CHAR_FORMAT_UINT8)) {
+                    json_ret = json_obj_get_bool(jctx, "value", &val.b);
+                }
 				break;
 			case HAP_CHAR_FORMAT_FLOAT:
 				json_ret = json_obj_get_float(jctx, "value", &val.f);
