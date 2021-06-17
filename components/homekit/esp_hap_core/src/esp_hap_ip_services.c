@@ -1555,7 +1555,16 @@ int hap_mdns_announce(bool first)
          * should update state number.
          */
         if (is_accessory_paired()) {
-            hap_increment_and_save_state_num();
+            uint8_t old_status_flags = atoi(sf);
+            /* This check is a workaround for TCI048, which does not expect s#
+             * to increment during the re-announcement after accessory pairing
+             * status changes from unpaired to paired.
+             */
+            if (old_status_flags & HAP_SF_ACC_UNPAIRED) {
+                ESP_MFI_DEBUG(ESP_MFI_DEBUG_WARN, "Skipping s# update for Certification requirements.");
+            } else {
+                hap_increment_and_save_state_num();
+            }
         }
     }
     snprintf(state_num, sizeof(state_num), "%u", hap_priv.state_num);
