@@ -167,6 +167,8 @@ void lightbulb_init(void)
 
     // config the timer
     ledc_timer_config_t ledc_timer = {
+        //resolution of pwm duty cycle
+        .duty_resolution = LEDC_TIMER_13_BIT,
         //set frequency of pwm
         .freq_hz = 5000,
         //timer mode,
