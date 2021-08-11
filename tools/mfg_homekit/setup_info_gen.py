@@ -44,8 +44,8 @@ def setup_id_gen(no_of_accessories):
 
         return setup_id_created
 
-    except StandardError as std_err:
-        print std_err
+    except Exception as std_err:
+        print(std_err)
     except:
         raise    
 
@@ -77,7 +77,7 @@ def setup_code_gen(no_of_accessories):
 
             # Check if the setup code has valid format
             if (len(setup_code) != 8) or (not setup_code.isdigit()):
-                print "\nSetup code generated should be 8 numbers without any '-' in between. Eg. 11122333 \n"
+                print("\nSetup code generated should be 8 numbers without any '-' in between. Eg. 11122333 \n")
                 raise SystemExit(1)
 
             # Add the hyphen (-) in the PIN for salt-verifier generation. So, 11122333 will become 111-22-333
@@ -87,8 +87,8 @@ def setup_code_gen(no_of_accessories):
     
         return setup_code_created
     
-    except StandardError as std_err:
-        print std_err
+    except Exception as std_err:
+        print(std_err)
     except:
         raise    
 
@@ -116,8 +116,8 @@ def setup_payload_create(cid,setup_code=None,setup_id=None):
         setup_payload = setup_payload_gen.main(cid=cid,setupCode=int(s_code),setupID=setup_id)
         return setup_payload,setup_code
 
-    except StandardError as std_err:
-        print std_err
+    except Exception as std_err:
+        print(std_err)
     except:
         raise    
 
@@ -178,10 +178,10 @@ def main(cid=None,output_target_file=None,target_values_file=None):
             setup_payload, setup_code = setup_payload_create(args.cid, setup_code=scode, setup_id=sid)
             output_txt_file = args.outdir + args.filename + '-' + str(setup_code) + '.txt' 
             write_setup_info_to_file(setup_code,setup_payload,output_txt_file)
-            print "File: " + output_txt_file + " created..."
+            print("File: " + output_txt_file + " created...")
 
-    except StandardError as std_err:
-        print std_err
+    except Exception as std_err:
+        print(std_err)
     except:
         raise    
 

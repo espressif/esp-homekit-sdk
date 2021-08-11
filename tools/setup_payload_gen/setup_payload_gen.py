@@ -30,8 +30,8 @@ def main(cid=None,setupCode=None,setupID=None):
         setup_payload_string = None
         if all(arg is None for arg in [cid,setupCode,setupID]):
             if len (sys.argv) != 4 :
-                print "Usage: ./setup_payload_gen.py <AccessoryCategory> <setupCode> <SetupID>"
-                print "Eg.: ./setup_payload_gen.py 7 51808582 7OSX"
+                print("Usage: ./setup_payload_gen.py <AccessoryCategory> <setupCode> <SetupID>")
+                print("Eg.: ./setup_payload_gen.py 7 51808582 7OSX")
                 raise SystemExit(1)
 
             cid = int(sys.argv[1]);
@@ -44,15 +44,15 @@ def main(cid=None,setupCode=None,setupID=None):
         VersionCategoryFlagsAndSetupCode = base36encode(VersionCategoryFlagsAndSetupCode)
 
         setup_payload = "X-HM://00" + VersionCategoryFlagsAndSetupCode + setupID
-        print setup_payload
+        print(setup_payload)
 
         if setup_payload_string:
-            print setup_payload_string + setup_payload
+            print(setup_payload_string + setup_payload)
 
         return setup_payload
 
-    except StandardError as e:
-        print e
+    except Exception as e:
+        print(e)
     except:
         raise
 
