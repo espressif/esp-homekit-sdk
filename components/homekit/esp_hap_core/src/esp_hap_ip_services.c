@@ -199,7 +199,16 @@ static int hap_http_pair_verify_handler(httpd_req_t *req)
             httpd_sess_set_send_override(hap_priv.server, fd, hap_httpd_send);
             httpd_sess_set_recv_override(hap_priv.server, fd, hap_httpd_recv);
 		}
-	}
+	} else {
+        if (req->sess_ctx) {
+            if (req->free_ctx) {
+                req->free_ctx(req->sess_ctx);
+            } else {
+                free(req->sess_ctx);
+            }
+        }
+        hap_platform_httpd_set_sess_ctx(req, NULL, NULL, true);
+    }
 	return ret1;
 }
 
