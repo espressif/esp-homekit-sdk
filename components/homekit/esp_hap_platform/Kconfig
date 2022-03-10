@@ -23,6 +23,7 @@ menu "MFi I2C Setup"
         default 4 if IDF_TARGET_ESP32S2
         default 5 if IDF_TARGET_ESP32C3
         default 2 if IDF_TARGET_ESP8266
+        default 4
         help
             GPIO for SDA - please check schematic carefully
 
@@ -32,6 +33,7 @@ menu "MFi I2C Setup"
         default 5 if IDF_TARGET_ESP32S2
         default 6 if IDF_TARGET_ESP32C3
         default 14 if IDF_TARGET_ESP8266
+        default 5
         help
             GPIO for SCL - please check schematic carefully
 
