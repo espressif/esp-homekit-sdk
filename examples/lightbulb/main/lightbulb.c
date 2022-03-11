@@ -22,197 +22,24 @@
  *
  */
 
-/* HomeKit Lightbulb Example Hardware Implementation
+/* HomeKit Lightbulb Example Dummy Implementation
+ * Refer ESP IDF docs for LED driver implementation:
+ * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/ledc.html
+ * https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/rmt.html
 */
 
 #include <stdio.h>
-
-#include "driver/ledc.h"
+#include <stdbool.h>
 #include "esp_log.h"
 
-typedef struct rgb {
-    uint8_t r;  // 0-100 %
-    uint8_t g;  // 0-100 %
-    uint8_t b;  // 0-100 %
-} rgb_t;
-
-
-typedef struct hsp {
-    uint16_t h;  // 0-360
-    uint16_t s;  // 0-100
-    uint16_t b;  // 0-100
-} hsp_t;
-
-/* LED numbers below are for ESP-WROVER-KIT */
-/* Red LED */
-#define LEDC_IO_0 (0)
-/* Green LED */
-#define LEDC_IO_1 (2)
-/* Blued LED */
-#define LEDC_IO_2 (4)
-
-#define PWM_DEPTH (1023)
-#define PWM_TARGET_DUTY 8192
-
-static hsp_t s_hsb_val;
-static uint16_t s_brightness;
-static bool s_on = false;
-
 static const char *TAG = "lightbulb";
-
-/**
- * @brief transform lightbulb's "RGB" and other parameter
- */
-static void lightbulb_set_aim(uint32_t r, uint32_t g, uint32_t b, uint32_t cw, uint32_t ww, uint32_t period)
-{
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, r);
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, g);
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_2, b);
-    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
-    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
-    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_2);
-}
-
-/**
- * @brief transform lightbulb's "HSV" to "RGB"
- */
-static bool lightbulb_set_hsb2rgb(uint16_t h, uint16_t s, uint16_t v, rgb_t *rgb)
-{
-    bool res = true;
-    uint16_t hi, F, P, Q, T;
-
-    if (!rgb)
-        return false;
-
-    if (h > 360) return false;
-    if (s > 100) return false;
-    if (v > 100) return false;
-
-    hi = (h / 60) % 6;
-    F = 100 * h / 60 - 100 * hi;
-    P = v * (100 - s) / 100;
-    Q = v * (10000 - F * s) / 10000;
-    T = v * (10000 - s * (100 - F)) / 10000;
-
-    switch (hi) {
-    case 0:
-        rgb->r = v;
-        rgb->g = T;
-        rgb->b = P;
-        break;
-    case 1:
-        rgb->r = Q;
-        rgb->g = v;
-        rgb->b = P;
-        break;
-    case 2:
-        rgb->r = P;
-        rgb->g = v;
-        rgb->b = T;
-        break;
-    case 3:
-        rgb->r = P;
-        rgb->g = Q;
-        rgb->b = v;
-        break;
-    case 4:
-        rgb->r = T;
-        rgb->g = P;
-        rgb->b = v;
-        break;
-    case 5:
-        rgb->r = v;
-        rgb->g = P;
-        rgb->b = Q;
-        break;
-    default:
-        return false;
-    }
-    return res;
-}
-
-/**
- * @brief set the lightbulb's "HSV"
- */
-static bool lightbulb_set_aim_hsv(uint16_t h, uint16_t s, uint16_t v)
-{
-    rgb_t rgb_tmp;
-    bool ret = lightbulb_set_hsb2rgb(h, s, v, &rgb_tmp);
-
-    if (ret == false)
-        return false;
-
-    lightbulb_set_aim(rgb_tmp.r * PWM_TARGET_DUTY / 100, rgb_tmp.g * PWM_TARGET_DUTY / 100,
-            rgb_tmp.b * PWM_TARGET_DUTY / 100, (100 - s) * 5000 / 100, v * 2000 / 100, 1000);
-
-    return true;
-}
-
-/**
- * @brief update the lightbulb's state
- */
-static void lightbulb_update()
-{
-    lightbulb_set_aim_hsv(s_hsb_val.h, s_hsb_val.s, s_hsb_val.b);
-}
-
 
 /**
  * @brief initialize the lightbulb lowlevel module
  */
 void lightbulb_init(void)
 {
-    // enable ledc module
-    periph_module_enable(PERIPH_LEDC_MODULE);
-
-    // config the timer
-    ledc_timer_config_t ledc_timer = {
-        //set frequency of pwm
-        .freq_hz = 5000,
-        //timer mode,
-        .speed_mode = LEDC_HIGH_SPEED_MODE,
-        //timer index
-        .timer_num = LEDC_TIMER_0
-    };
-    ledc_timer_config(&ledc_timer);
-
-    //config the channel
-    ledc_channel_config_t ledc_channel = {
-        //set LEDC channel 0
-        .channel = LEDC_CHANNEL_0,
-        //set the duty for initialization.(duty range is 0 ~ ((2**bit_num)-1)
-        .duty = 100,
-        //GPIO number
-        .gpio_num = LEDC_IO_0,
-        //GPIO INTR TYPE, as an example, we enable fade_end interrupt here.
-        .intr_type = LEDC_INTR_FADE_END,
-        //set LEDC mode, from ledc_mode_t
-        .speed_mode = LEDC_HIGH_SPEED_MODE,
-        //set LEDC timer source, if different channel use one timer,
-        //the frequency and bit_num of these channels should be the same
-        .timer_sel = LEDC_TIMER_0
-    };
-    //set the configuration
-    ledc_channel_config(&ledc_channel);
-
-    //config ledc channel1
-    ledc_channel.channel = LEDC_CHANNEL_1;
-    ledc_channel.gpio_num = LEDC_IO_1;
-    ledc_channel_config(&ledc_channel);
-    //config ledc channel2
-    ledc_channel.channel = LEDC_CHANNEL_2;
-    ledc_channel.gpio_num = LEDC_IO_2;
-    ledc_channel_config(&ledc_channel);
-}
-
-/**
- * @brief deinitialize the lightbulb's lowlevel module
- */
-void lightbulb_deinit(void)
-{
-    ledc_stop(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 0);
-    ledc_stop(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, 0);
-    ledc_stop(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_2, 0);
+    ESP_LOGI(TAG, "Dummy Light Driver Init.");
 }
 
 /**
@@ -221,17 +48,6 @@ void lightbulb_deinit(void)
 int lightbulb_set_on(bool value)
 {
     ESP_LOGI(TAG, "lightbulb_set_on : %s", value == true ? "true" : "false");
-
-    if (value == true) {
-        s_hsb_val.b = s_brightness;
-        s_on = true;
-    } else {
-        s_brightness = s_hsb_val.b;
-        s_hsb_val.b = 0;
-        s_on = false;
-    }
-    lightbulb_update();
-
     return 0;
 }
 
@@ -241,11 +57,6 @@ int lightbulb_set_on(bool value)
 int lightbulb_set_saturation(float value)
 {
     ESP_LOGI(TAG, "lightbulb_set_saturation : %f", value);
-
-    s_hsb_val.s = value;
-    if (true == s_on)
-        lightbulb_update();
-
     return 0;
 }
 
@@ -255,11 +66,6 @@ int lightbulb_set_saturation(float value)
 int lightbulb_set_hue(float value)
 {
     ESP_LOGI(TAG, "lightbulb_set_hue : %f", value);
-
-    s_hsb_val.h = value;
-    if (true == s_on)
-        lightbulb_update();
-
     return 0;
 }
 
@@ -269,11 +75,5 @@ int lightbulb_set_hue(float value)
 int lightbulb_set_brightness(int value)
 {
     ESP_LOGI(TAG, "lightbulb_set_brightness : %d", value);
-
-    s_hsb_val.b = value;
-    s_brightness = s_hsb_val.b; 
-    if (true == s_on)
-        lightbulb_update();
-
     return 0;
 }

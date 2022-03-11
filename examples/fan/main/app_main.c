@@ -102,7 +102,7 @@ static int fan_identify(hap_acc_t *ha)
  * An optional HomeKit Event handler which can be used to track HomeKit
  * specific events.
  */
-static void fan_hap_event_handler(void* arg, esp_event_base_t event_base, int event, void *data)
+static void fan_hap_event_handler(void* arg, esp_event_base_t event_base, int32_t event, void *data)
 {
     switch(event) {
         case HAP_EVENT_PAIRING_STARTED :

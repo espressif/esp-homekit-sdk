@@ -119,7 +119,7 @@ static int lightbulb_write(hap_write_data_t write_data[], int count,
     }
     return ret;
 }
-static void aws_iot_ip_event_cb(void* arg, esp_event_base_t event_base, int event_id, void* event_data)
+static void aws_iot_ip_event_cb(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
     if (event_id == IP_EVENT_STA_GOT_IP) {
             /* Starts the AWS-IOT main loop */

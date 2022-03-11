@@ -55,5 +55,3 @@ build_homekit_examples:
     - idf.py build
     - cd ../emulator
     - idf.py build
-    - cd ../ethernet_bridge
-    - idf.py build

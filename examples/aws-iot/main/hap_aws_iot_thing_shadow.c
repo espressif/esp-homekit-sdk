@@ -237,7 +237,7 @@ static void aws_iot_task(void *p)
         if (SUCCESS != rc) {
             ESP_LOGE(TAG, "Error(%d) connecting to %s: %d", rc, sp.pHost, sp.port);
             ESP_LOGI(TAG, "Please check the device key/certificate, server certificate, endpoint URL and Port");
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
     } while (SUCCESS != rc);
     ESP_LOGI(TAG, "AWS connected successfully.");
