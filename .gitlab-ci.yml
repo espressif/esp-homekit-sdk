@@ -3,7 +3,7 @@ stages:
 
 build_homekit_examples:
   stage: build
-  image: $CI_DOCKER_REGISTRY/esp32-ci-env
+  image: $CI_DOCKER_REGISTRY/$CI_IMAGE
   tags:
     - build
 
@@ -30,7 +30,7 @@ build_homekit_examples:
   script:
     - git submodule update --init --recursive
     # Cloning esp-idf
-    - git clone -b release/v4.2 --recursive --depth 1 https://github.com/espressif/esp-idf.git
+    - git clone --recursive --branch ${IDF_GIT_BRANCH} --depth 1 ${IDF_GIT_PATH}/esp-idf.git
     - cd esp-idf
     - ./install.sh
     - . export.sh
@@ -55,38 +55,3 @@ build_homekit_examples:
     - idf.py build
     - cd ../emulator
     - idf.py build
-    - cd ../ethernet_bridge
-    - idf.py build
-    - cd ../fan
-    - rm -rf build sdkconfig sdkconfig.old
-    - make defconfig
-    - make -j4
-    - cd ../bridge
-    - rm -rf build sdkconfig sdkconfig.old
-    - make defconfig
-    - make -j4
-    - cd ../lightbulb
-    - rm -rf build sdkconfig sdkconfig.old
-    - make defconfig
-    - make -j4
-    - cd ../smart_outlet
-    - rm -rf build sdkconfig sdkconfig.old
-    - make defconfig
-    - make -j4
-    - cd ../data_tlv8
-    - rm -rf build sdkconfig sdkconfig.old
-    - make defconfig
-    - make -j4
-    - cd ../aws-iot
-    - rm -rf build sdkconfig sdkconfig.old
-    - touch main/certs/device.crt main/certs/device.key
-    - make defconfig
-    - make -j4
-    - cd ../emulator
-    - rm -rf build sdkconfig sdkconfig.old
-    - make defconfig
-    - make -j4
-    - cd ../ethernet_bridge
-    - rm -rf build sdkconfig sdkconfig.old
-    - make defconfig
-    - make -j4

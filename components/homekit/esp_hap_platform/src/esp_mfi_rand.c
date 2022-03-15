@@ -24,7 +24,10 @@
 
 #include <stdint.h>
 #include <esp_system.h>
-
+#include <esp_idf_version.h>
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#include <esp_random.h>
+#endif
 /**
  * @bref Obtain a series of random bytes
  *

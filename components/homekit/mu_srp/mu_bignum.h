@@ -87,6 +87,10 @@ static inline int mu_bn_a_add_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, m
 #ifdef BIGNUM_MBEDTLS
 #include <mbedtls/bignum.h>
 #include <esp_system.h>
+#include <esp_idf_version.h>
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#include <esp_random.h>
+#endif
 #ifdef CONFIG_IDF_TARGET_ESP8266
 #include <driver/rtc.h>
 #endif
