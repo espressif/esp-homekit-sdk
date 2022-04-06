@@ -82,3 +82,20 @@ int hap_unregister_secure_message_handler(httpd_handle_t handle)
     ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "MFi SW Auth not supported. Please use MFi variant of the SDK.");
     return ESP_FAIL;
 }
+
+esp_err_t hap_wifi_config_revert_network(void)
+{
+    ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Wi-Fi reconfiguration service not supported. Please use MFi variant of the SDK.");
+    return ESP_FAIL;
+}
+esp_err_t hap_wifi_config_sta_connect(void)
+{
+    ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Wi-Fi reconfiguration service not supported. Please use MFi variant of the SDK.");
+    return ESP_FAIL;
+}
+
+esp_err_t hap_acc_add_wifi_transport_service(hap_acc_t *ha, uint32_t capabilities)
+{
+    ESP_MFI_DEBUG(ESP_MFI_DEBUG_WARN, "Wi-Fi reconfiguration service not supported. Please use MFi variant of the SDK.");
+    return ESP_FAIL;
+}

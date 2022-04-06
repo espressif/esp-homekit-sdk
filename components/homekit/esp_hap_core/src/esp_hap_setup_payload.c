@@ -32,6 +32,7 @@
 static const char *TAG = "esp_hap_setup_payload";
 
 #define SETUP_CODE_MASK     0x0000000007ffffff
+#define PRODUCT_DATA_MASK   0x0000010000000000
 #define HAP_OVER_IP_MASK    0x0000000010000000
 #define WAC_MASK            0x0000000040000000
 #define SETUP_PAYLOAD_PREFIX              "X-HM://00"
@@ -69,7 +70,7 @@ char *esp_hap_get_setup_payload(char *setup_code, char *setup_id, bool wac_suppo
 
     payload |= code;
     payload |= category;
-    payload |= HAP_OVER_IP_MASK;
+    payload |= ( HAP_OVER_IP_MASK | PRODUCT_DATA_MASK);
     if (wac_support) {
         payload |= WAC_MASK;
     }

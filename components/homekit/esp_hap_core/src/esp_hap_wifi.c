@@ -119,3 +119,19 @@ esp_err_t hap_wifi_sta_connect(wifi_config_t *config)
     esp_wifi_connect();
     return ESP_OK;
 }
+
+esp_err_t hap_wifi_sta_switch(wifi_config_t *config)
+{
+    ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Switching Wi-Fi network.");
+    wifi_mode_t mode;
+    esp_wifi_get_mode(&mode);
+    if (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA) {
+        esp_wifi_set_mode(WIFI_MODE_APSTA);
+    } else {
+        esp_wifi_set_mode(WIFI_MODE_STA);
+    }
+    esp_wifi_set_config(ESP_IF_WIFI_STA, config);
+    esp_wifi_disconnect();
+    esp_wifi_connect();
+    return ESP_OK;
+}

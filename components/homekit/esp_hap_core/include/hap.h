@@ -159,6 +159,9 @@ typedef struct {
  */
 #define HAP_CHAR_PERM_SPECIAL_READ    (1 << 6)
 
+/** Characteristic supports write response */
+#define HAP_CHAR_PERM_WR        (1 << 7)
+
 /** HAP object handle */
 typedef size_t                  hap_handle_t;
 
@@ -490,6 +493,19 @@ int hap_acc_update_accessory_flags(hap_acc_t *ha, uint32_t flags);
  * @return HAP_FAIL on failure
  */
 int hap_acc_add_product_data(hap_acc_t *ha, uint8_t *product_data, size_t data_size);
+
+/** Add Wi-Fi Transport Service
+ *
+ * This adds the Wi-Fi transport service to the given accessory as per HAP Spec R16.
+ * The read/write callbacks are set internally,. This requires MFi variant of the SDK.
+ *
+ * @param[in] ha HAP Accessory object handle
+ * @param[in] capabilities Capabilities bitmap as per HAP Spec R16. Pass 0 to use default (recommended).
+ *
+ * @return ESP_OK on success.
+ * @return error on failure.
+ */
+esp_err_t hap_acc_add_wifi_transport_service(hap_acc_t *ha, uint32_t capabilities);
 
 /**
  * @brief Add accessory to the HAP Object database
@@ -1062,6 +1078,8 @@ typedef struct {
     /** Indicates if the received request was a remote write
      */
     bool remote;
+    /** Indicates whether a value is expected in the response */
+    bool write_response;
     /** This is an output parameter, which should be set in the service write
      * routine as per the status of the write.
      */
@@ -1507,6 +1525,10 @@ typedef enum {
      * Reefer the HAP_REBOOT_REASON_* macros for possible values.
      */
     HAP_EVENT_ACC_REBOOTING,
+    /* Accessory is no more available for pairing. This will be triggered if an accessory is in
+     * an unpaired state for more than the time specified in HAP Spec R16.
+     */
+    HAP_EVENT_PAIRING_MODE_TIMED_OUT,
 } hap_event_t;
 
 /** Prototype for HomeKit Event handler
@@ -1565,6 +1587,13 @@ void hap_http_debug_disable();
  * @return NULL on failure.
  */
 char *esp_hap_get_setup_payload(char *setup_code, char *setup_id, bool wac_support, hap_cid_t cid);
+
+/* Re-enable Pair Setup
+ *
+ * This API can be used to re-enable pair setup after it has timed out
+ * as per the requirements of HAP Specs R16.
+ */
+void hap_pair_setup_re_enable(void);
 #ifdef __cplusplus
 }
 #endif

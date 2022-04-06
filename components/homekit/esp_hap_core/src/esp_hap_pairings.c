@@ -29,6 +29,7 @@
 #include <esp_hap_controllers.h>
 #include <esp_hap_pair_common.h>
 #include <esp_hap_pair_verify.h>
+#include <esp_hap_pair_setup.h>
 #include <esp_hap_main.h>
 #include <esp_mfi_debug.h>
 
@@ -114,6 +115,8 @@ static int hap_process_pair_remove(uint8_t *buf, int inlen, int bufsize, int *ou
 	*outlen = tlv_data.curlen;
     if (acc_unpaired) {
         hap_send_event(HAP_INTERNAL_EVENT_ACC_UNPAIRED);
+        /* If the accessory is unpaired, start the pairing mode timer */
+        hap_start_pairing_mode_timer();
     }
 	return HAP_SUCCESS;
 }

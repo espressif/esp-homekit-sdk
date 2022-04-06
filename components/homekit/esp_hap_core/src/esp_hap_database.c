@@ -35,6 +35,7 @@
 #include <esp_hap_keystore.h>
 #include <esp_hap_database.h>
 #include <esp_hap_controllers.h>
+#include <esp_hap_pair_setup.h>
 
 #include <esp_mfi_base64.h>
 
