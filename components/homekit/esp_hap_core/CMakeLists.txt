@@ -2,10 +2,11 @@ set(HAP_SDK_VER "4.0")
 execute_process (
     COMMAND bash -c "git log --pretty=format:\"%h\" -1"
     OUTPUT_VARIABLE GIT_COMMIT
+    WORKING_DIRECTORY ${COMPONENT_DIR}
 )
 #execute_process(COMMAND "git log --pretty=format:\"%h\"" -1 OUTPUT_VARIABLE GIT_COMMIT)
 set(MFI_VER ${HAP_SDK_VER}-${GIT_COMMIT})
-message(${MFI_VER})
+message(STATUS ${MFI_VER})
 
 
 # CORE
@@ -50,4 +51,4 @@ component_compile_options(-Wno-unused-function)
 target_compile_definitions(${COMPONENT_TARGET} PRIVATE "-D MFI_VER=\"${MFI_VER}\"")
 # Added just to automatically trigger re-runs of CMake
 git_describe(ESP_HOMEKIT_VERSION ${COMPONENT_DIR})
-message("ESP HomeKit SDK Project commit: " ${ESP_HOMEKIT_VERSION})
+message(STATUS "ESP HomeKit SDK Project commit: " ${ESP_HOMEKIT_VERSION})
