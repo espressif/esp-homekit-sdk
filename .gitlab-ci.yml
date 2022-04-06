@@ -48,7 +48,7 @@ build_homekit_examples:
     - cd ../aws-iot
     - mkdir components
     - cd components
-    - git clone --depth 1 --single-branch --recursive https://github.com/espressif/esp-aws-iot.git
+    - git clone --depth 1 -b release/v3.1.x --single-branch --recursive https://github.com/espressif/esp-aws-iot.git
     - export AWS_IOT_PATH=$PWD/esp-aws-iot
     - cd ..
     - touch main/certs/device.crt main/certs/device.key

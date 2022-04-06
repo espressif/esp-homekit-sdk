@@ -265,6 +265,9 @@ static void sensor_thread_entry(void *p)
     uint8_t product_data[] = {'E','S','P','3','2','H','A','P'};
     hap_acc_add_product_data(accessory, product_data, sizeof(product_data));
 
+    /* Add Wi-Fi Transport service required for HAP Spec R16 */
+    hap_acc_add_wifi_transport_service(accessory, 0);
+
     /* Create the Sensor Service. Include the "name" since this is a user visible service  */
     service = hap_serv_temperature_sensor_create(10);
     hap_serv_add_char(service, hap_char_name_create("My Temperature Sensor"));

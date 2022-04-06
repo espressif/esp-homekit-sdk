@@ -171,6 +171,9 @@ static void bridge_thread_entry(void *p)
     uint8_t product_data[] = {'E','S','P','3','2','H','A','P'};
     hap_acc_add_product_data(accessory, product_data, sizeof(product_data));
 
+    /* Add Wi-Fi Transport service required for HAP Spec R16 */
+    hap_acc_add_wifi_transport_service(accessory, 0);
+
     /* Add the Accessory to the HomeKit Database */
     hap_add_accessory(accessory);
 
