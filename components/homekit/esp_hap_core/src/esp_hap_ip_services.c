@@ -199,7 +199,16 @@ static int hap_http_pair_verify_handler(httpd_req_t *req)
             httpd_sess_set_send_override(hap_priv.server, fd, hap_httpd_send);
             httpd_sess_set_recv_override(hap_priv.server, fd, hap_httpd_recv);
 		}
-	}
+	} else {
+        if (req->sess_ctx) {
+            if (req->free_ctx) {
+                req->free_ctx(req->sess_ctx);
+            } else {
+                free(req->sess_ctx);
+            }
+        }
+        hap_platform_httpd_set_sess_ctx(req, NULL, NULL, true);
+    }
 	return ret1;
 }
 
@@ -343,6 +352,8 @@ static int hap_add_char_perms(__hap_char_t *hc, json_gen_str_t *jptr)
 		json_gen_arr_set_string(jptr, "tw");
 	if (hc->permission & HAP_CHAR_PERM_HD)
 		json_gen_arr_set_string(jptr, "hd");
+	if (hc->permission & HAP_CHAR_PERM_WR)
+		json_gen_arr_set_string(jptr, "wr");
 	json_gen_pop_array(jptr);
 	return HAP_SUCCESS;
 }
@@ -393,6 +404,14 @@ static int hap_prepare_char_db(__hap_char_t *hc, json_gen_str_t *jptr, int sessi
 	if (hc->permission & HAP_CHAR_PERM_PR) {
         if (hc->permission & HAP_CHAR_PERM_SPECIAL_READ) {
             json_gen_obj_set_null(jptr, "value");
+        } else if (hc->permission & HAP_CHAR_PERM_WR) {
+            /* TODO: Check what to do for bool/int/float types of control
+             * characteristics with "Write Response" permission.
+             * Ideally, a NULL should have been acceptable as it is independent
+             * of actual datatype, but HAT does not accept it for Wi-Fi
+             * configuration.
+             */
+            json_gen_obj_set_string(jptr, "value", "");
         } else {
             hap_add_char_val_json(hc->format, "value", &hc->val, jptr);
         }
@@ -556,6 +575,36 @@ static void hap_set_char_report_status(bool *include_status, json_gen_str_t *jst
 	json_gen_end_object(jstr);
 }
 
+static void hap_set_char_report_write_response(bool *include_status, json_gen_str_t *jstr,
+        int aid, int iid, __hap_char_t *hc)
+{
+    if (!*include_status) {
+        json_gen_start_object(jstr);
+        json_gen_push_array(jstr, "characteristics");
+        *include_status = true;
+    }
+    json_gen_start_object(jstr);
+    json_gen_obj_set_int(jstr, "aid", aid);
+    json_gen_obj_set_int(jstr, "iid", iid);
+    json_gen_obj_set_int(jstr, "status", 0);
+    hap_add_char_val_json(hc->format, "value", &hc->val, jstr);
+    json_gen_end_object(jstr);
+}
+
+static void remove_escape_char(char *data, uint32_t *buf_len)
+{
+    char *target_data = data;
+    uint32_t len = *buf_len;
+    while (len--) {
+        if (*data == '\\') {
+            data++;
+            (*buf_len)--;
+            len--;
+        }
+        *target_data++ = *data++;
+    }
+}
+
 static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_size,
 		httpd_req_t *req)
 {
@@ -628,6 +677,25 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 			continue;
 		}
 
+        /* Check if this write is just to enable/disable event notifications.
+         * This is valid even for read-only characteristics that support event
+         * notifications (like sensor readings), so we do not check the HAP_CHAR_PERM_PW
+         * here.
+         */
+		bool ev;
+		if (json_obj_get_bool(jctx, "ev", &ev) == HAP_SUCCESS) {
+            if (hc->permission & HAP_CHAR_PERM_EV) {
+                int index = hap_get_ctrl_session_index(session);
+                hap_char_manage_notification((hap_char_t *)hc, index, ev);
+                ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Events %s for aid=%d iid=%d",
+                        ev ? "Enabled" : "Disabled", aid, iid);
+            } else {
+				hap_set_char_report_status(&include_status, &jstr,
+						aid, iid, HAP_STATUS_NO_NOTIF);
+			}
+			continue;
+		}
+
         /* If the previous request was a prepare, but the current
          * one was not a valid timed write, report error.
          */
@@ -647,25 +715,6 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
                 continue;
             }
         }
-
-        /* Check if this write is just to enable/disable event notifications.
-         * This is valid even for read-only characteristics that support event
-         * notifications (like sensor readings), so we do not check the HAP_CHAR_PERM_PW
-         * here.
-         */
-		bool ev;
-		if (json_obj_get_bool(jctx, "ev", &ev) == HAP_SUCCESS) {
-            if (hc->permission & HAP_CHAR_PERM_EV) {
-                int index = hap_get_ctrl_session_index(session);
-                hap_char_manage_notification((hap_char_t *)hc, index, ev);
-                ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Events %s for aid=%d iid=%d",
-                        ev ? "Enabled" : "Disabled", aid, iid);
-            } else {
-				hap_set_char_report_status(&include_status, &jstr,
-						aid, iid, HAP_STATUS_NO_NOTIF);
-			}
-			continue;
-		}
 
         /* Check if the characteristic has write permission */
 		if (!(hc->permission & HAP_CHAR_PERM_PW)) {
@@ -750,6 +799,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
                     }
                     val.d.buflen = str_len + 1;
 					json_obj_get_string(jctx, "value", (char *)val.d.buf, val.d.buflen);
+                    remove_escape_char((char *)val.d.buf, &val.d.buflen);
                     if (esp_mfi_base64_decode((const char *)val.d.buf, strlen((char *)val.d.buf),
                                 (char *)val.d.buf, val.d.buflen, (int *)&val.d.buflen) != 0) {
                         hap_platform_memory_free(val.d.buf);
@@ -784,6 +834,11 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
         bool remote = false;
         json_obj_get_bool(jctx, "remote", &remote);
 
+        bool response = false;
+        if (hc->permission & HAP_CHAR_PERM_WR) {
+            json_obj_get_bool(jctx, "r", &response);
+        }
+
         int index = hap_get_ctrl_session_index(session);
         hap_char_set_owner_ctrl((hap_char_t *)hc, index);
 		/* No errors in the object data itself. Save the characteristic
@@ -793,6 +848,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 		write_arr[char_cnt].val = val;
         write_arr[char_cnt].auth_data = auth_data;
         write_arr[char_cnt].remote = remote;
+        write_arr[char_cnt].write_response = response;
         write_arr[char_cnt].status = &status_arr[char_cnt];
 		char_cnt++;
 	}
@@ -807,6 +863,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 	 */
 	int hs_index = 0;
 	bool write_err = false;
+    bool write_response = false;
 	__hap_serv_t *hs = (__hap_serv_t *)hap_char_get_parent(write_arr[0].hc);
 	/* The counter here will go till char_cnt instead of char_cnt - 1.
 	 * When i == char_cnt, it will mean that all elements in the array
@@ -815,6 +872,15 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 	 * set of characteritics.
 	 */
 	for (i = 0; i <= char_cnt; i++) {
+        /* Explicitly checking for i < char_cnt because this loop runs till
+         * char_cnt (because of logic mentioned above) which is actually
+         * outside the write_arr.
+         */
+        if (i < char_cnt) {
+            if (write_arr[i].write_response) {
+                write_response = true;
+            }
+        }
 		if ((i < char_cnt) && ((hap_serv_t *)hs == hap_char_get_parent(write_arr[i].hc)))
 			continue;
 		else {
@@ -832,12 +898,18 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 			}
 		}
 	}
-	if (write_err || include_status) {
+	if (write_err || include_status || write_response) {
 		for (i = 0; i < char_cnt; i++) {
             /* TODO: The code to get aid looks complex. Simplify */
-			hap_set_char_report_status(&include_status, &jstr,
-				((__hap_acc_t *)hap_serv_get_parent(hap_char_get_parent(write_arr[i].hc)))->aid,
-				((__hap_char_t *)(write_arr[i].hc))->iid, *write_arr[i].status);
+            if (write_arr[i].write_response && (*write_arr[i].status == HAP_STATUS_SUCCESS)) {
+                hap_set_char_report_write_response(&include_status, &jstr,
+                        ((__hap_acc_t *)hap_serv_get_parent(hap_char_get_parent(write_arr[i].hc)))->aid,
+                        ((__hap_char_t *)(write_arr[i].hc))->iid, (__hap_char_t *)(write_arr[i].hc));
+                continue;
+            }
+            hap_set_char_report_status(&include_status, &jstr,
+                    ((__hap_acc_t *)hap_serv_get_parent(hap_char_get_parent(write_arr[i].hc)))->aid,
+                    ((__hap_char_t *)(write_arr[i].hc))->iid, *write_arr[i].status);
 		}
 	}
 
@@ -1555,7 +1627,16 @@ int hap_mdns_announce(bool first)
          * should update state number.
          */
         if (is_accessory_paired()) {
-            hap_increment_and_save_state_num();
+            uint8_t old_status_flags = atoi(sf);
+            /* This check is a workaround for TCI048, which does not expect s#
+             * to increment during the re-announcement after accessory pairing
+             * status changes from unpaired to paired.
+             */
+            if (old_status_flags & HAP_SF_ACC_UNPAIRED) {
+                ESP_MFI_DEBUG(ESP_MFI_DEBUG_WARN, "Skipping s# update for Certification requirements.");
+            } else {
+                hap_increment_and_save_state_num();
+            }
         }
     }
     snprintf(state_num, sizeof(state_num), "%u", hap_priv.state_num);

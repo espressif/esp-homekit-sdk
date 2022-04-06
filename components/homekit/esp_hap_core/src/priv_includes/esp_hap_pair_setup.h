@@ -57,4 +57,5 @@ int hap_pair_setup_context_init(int sock_fd, void **ctx, uint8_t *buf, int bufsi
 int hap_pair_setup_process(void **ctx, uint8_t *buf, int inlen, int bufsize, int *outlen);
 void hap_pair_setup_ctx_clean(void *sess_ctx);
 int hap_pair_setup_manage_mfi_auth(pair_setup_ctx_t *ps_ctx, hap_tlv_data_t *tlv_data, hap_tlv_error_t *tlv_error);
+void hap_start_pairing_mode_timer(void);
 #endif /* _HAP_PAIR_SETUP_H_ */

@@ -27,7 +27,6 @@
 #include <freertos/task.h>
 #include <freertos/queue.h>
 #include <esp_event.h>
-#include <esp_wifi.h>
 
 #include <esp_mfi_debug.h>
 #include <esp_hap_acc.h>
@@ -141,6 +140,28 @@ static void hap_common_sm(hap_internal_event_t event)
 /* TODO: Avoid direct http function. Notification could be even for iCloud or BLE.
  */
             hap_http_send_notif();
+            return;
+        case HAP_INTERNAL_EVENT_NETWORK_SWITCH:
+            ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Taking the network down");
+            /* wait for some time, close all the active sessions and then
+             * erase network info.
+             */
+            vTaskDelay(2000 / hap_platform_os_get_msec_per_tick());
+            hap_close_all_sessions();
+            hap_mdns_deannounce();
+            vTaskDelay(1000 / hap_platform_os_get_msec_per_tick());
+            hap_wifi_config_sta_connect();
+            return;
+        case HAP_INTERNAL_EVENT_NETWORK_REVERT:
+            ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Taking the network down");
+            /* wait for some time, close all the active sessions and then
+             * erase network info.
+             */
+            vTaskDelay(2000 / hap_platform_os_get_msec_per_tick());
+            hap_close_all_sessions();
+            hap_mdns_deannounce();
+            vTaskDelay(1000 / hap_platform_os_get_msec_per_tick());
+            hap_wifi_config_revert_network();
             return;
         default:
             return;
@@ -290,6 +311,16 @@ int hap_reboot_accessory()
 int hap_reset_network()
 {
     return hap_send_event(HAP_INTERNAL_EVENT_RESET_NETWORK);
+}
+
+int hap_trigger_network_switch(void)
+{
+    return hap_send_event(HAP_INTERNAL_EVENT_NETWORK_SWITCH);
+}
+
+int hap_trigger_network_revert(void)
+{
+    return hap_send_event(HAP_INTERNAL_EVENT_NETWORK_REVERT);
 }
 
 int hap_start(void)

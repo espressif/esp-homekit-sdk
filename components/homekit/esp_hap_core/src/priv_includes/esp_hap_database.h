@@ -24,6 +24,8 @@
 #ifndef _HAP_DATABASE_H_
 #define _HAP_DATABASE_H_
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/timers.h>
 #include <hap.h>
 #include <esp_hap_controllers.h>
 #include <esp_hap_pair_common.h>
@@ -79,6 +81,7 @@ typedef struct {
     uint16_t state_num;
     bool disconnected_event_sent;
     hap_mfi_auth_type_t auth_type;
+    TimerHandle_t pairing_mode_timer;
 } hap_priv_t;
 
 extern hap_priv_t hap_priv;

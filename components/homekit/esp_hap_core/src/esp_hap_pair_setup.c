@@ -34,6 +34,7 @@
 #include <hap_platform_memory.h>
 #include <hap_platform_os.h>
 
+#include <esp_hap_ip_services.h>
 #include <esp_hap_pair_common.h>
 #include <esp_hap_pair_setup.h>
 #include <esp_hap_database.h>
@@ -54,8 +55,46 @@
 #define PS_CTX_INIT	1
 #define PS_CTX_DEINIT	2
 
-/* Timeout if pair setup not completed in 1 minute (60sec)*/
-#define HAP_SETUP_TIMEOUT_IN_TICKS  ((40 * 1000) / hap_platform_os_get_msec_per_tick())
+/* Timeout if pair setup not completed in 40sec after starting it*/
+#define HAP_SETUP_TIMEOUT_IN_SECS   40
+#define HAP_SETUP_TIMEOUT_IN_TICKS  ((HAP_SETUP_TIMEOUT_IN_SECS * 1000) / hap_platform_os_get_msec_per_tick())
+
+/* Timeout for staying in pairing mode as per HAP Spec R16 */
+#define HAP_PAIRING_MODE_TIMEOUT_IN_MINS    10
+#define HAP_PAIRING_MODE_TIMEOUT_IN_TICKS   ((60 * HAP_PAIRING_MODE_TIMEOUT_IN_MINS * 1000) / hap_platform_os_get_msec_per_tick())
+
+static void hap_pairing_mode_timeout(TimerHandle_t handle)
+{
+    /* De-announce the mDNS service if the pairing mode has timer out */
+    ESP_MFI_DEBUG(ESP_MFI_DEBUG_WARN, "Pairing Mode timed out. Please reboot the device or re-enable pair setup.");
+    hap_mdns_deannounce();
+    hap_report_event(HAP_EVENT_PAIRING_MODE_TIMED_OUT, NULL, 0);
+}
+
+void hap_start_pairing_mode_timer(void)
+{
+    if (!hap_priv.pairing_mode_timer) {
+        hap_priv.pairing_mode_timer = xTimerCreate("hap_pairing_mode_timer", HAP_PAIRING_MODE_TIMEOUT_IN_TICKS,
+                pdFALSE, NULL, hap_pairing_mode_timeout);
+    }
+    if (hap_priv.pairing_mode_timer) {
+        xTimerStart(hap_priv.pairing_mode_timer, 0);
+    }
+}
+
+void hap_stop_pairing_mode_timer(void)
+{
+    if (hap_priv.pairing_mode_timer) {
+        xTimerStop(hap_priv.pairing_mode_timer, 0);
+    }
+}
+
+void hap_pair_setup_re_enable(void)
+{
+	ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "######## Re-enabling Pair Setup ########");
+    hap_mdns_announce(false);
+    hap_start_pairing_mode_timer();
+}
 
 static int hap_pair_setup_process_srp_start(pair_setup_ctx_t *ps_ctx, uint8_t *buf, int inlen,
 		int bufsize, int *outlen)
@@ -98,6 +137,9 @@ static int hap_pair_setup_process_srp_start(pair_setup_ctx_t *ps_ctx, uint8_t *b
 		return HAP_FAIL;
 	}
 	ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Pair Setup M1 Received");
+
+    /* Start/Restart Pairing Mode Timer */
+    hap_start_pairing_mode_timer();
 
     int flags_len;
     if ((flags_len = get_value_from_tlv(buf, inlen, kTLVType_Flags, &ps_ctx->pairing_flags, sizeof(ps_ctx->pairing_flags))) > 0) {
@@ -401,6 +443,8 @@ static int hap_pair_setup_process_exchange(pair_setup_ctx_t *ps_ctx, uint8_t *bu
 	hap_priv.pair_attempts = 0;
     hap_controller_save(ps_ctx->ctrl);
     hap_send_event(HAP_INTERNAL_EVENT_ACC_PAIRED);
+    /* Stop the pairing mode timer, since pairing is already done */
+    hap_stop_pairing_mode_timer();
 	return HAP_SUCCESS;
 }
 static uint8_t hap_pair_setup_get_received_state(uint8_t *buf, int inlen)

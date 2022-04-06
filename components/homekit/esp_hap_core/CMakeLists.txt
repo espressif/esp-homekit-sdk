@@ -34,7 +34,7 @@ set(srcs src/byte_convert.c
 set(priv_includes src/priv_includes)
 
 if(CONFIG_HAP_MFI_ENABLE)
-    list(APPEND srcs src/mfi/esp_mfi_auth.c src/mfi/esp_mfi_coprocessor.c src/mfi/esp_mfi_element.c src/mfi/esp_mfi_sap.c src/mfi/esp_mfi_pair_setup.c src/mfi/esp_hap_secure_message.c src/mfi/esp_mfi_wac.c)
+    list(APPEND srcs src/mfi/esp_mfi_auth.c src/mfi/esp_mfi_coprocessor.c src/mfi/esp_mfi_element.c src/mfi/esp_mfi_sap.c src/mfi/esp_mfi_pair_setup.c src/mfi/esp_hap_secure_message.c src/mfi/esp_mfi_wac.c src/mfi/esp_hap_wifi_transport.c)
     list(APPEND priv_includes src/mfi)
 else()
     list(APPEND srcs src/esp_mfi_dummy.c)
