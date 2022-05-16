@@ -30,7 +30,7 @@ build_homekit_examples:
   script:
     - git submodule update --init --recursive
     # Cloning esp-idf
-    - git clone --recursive --branch ${IDF_GIT_BRANCH} --depth 1 ${IDF_GIT_PATH}/esp-idf.git
+    - git clone --recursive --single-branch --branch ${IDF_GIT_BRANCH} --depth 1 ${IDF_GIT_PATH}/esp-idf.git
     - cd esp-idf
     - ./install.sh
     - . export.sh
