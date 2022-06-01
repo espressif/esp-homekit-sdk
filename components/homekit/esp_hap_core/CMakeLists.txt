@@ -42,11 +42,17 @@ else()
 
 endif()
 
+set(priv_req libsodium esp_http_server hkdf-sha mu_srp json_generator json_parser esp_hap_platform esp_hap_apple_profiles mdns)
+# esp_timer component was introduced in v4.2
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER "4.1")
+    list(APPEND priv_req esp_timer)
+endif()
+
 idf_component_register(SRCS ${srcs}
                        INCLUDE_DIRS "include"
                        PRIV_INCLUDE_DIRS ${priv_includes}
                        REQUIRES
-                       PRIV_REQUIRES libsodium esp_http_server hkdf-sha mu_srp json_generator json_parser esp_hap_platform esp_hap_apple_profiles mdns esp_timer)
+                       PRIV_REQUIRES ${priv_req})
 component_compile_options(-Wno-unused-function)
 target_compile_definitions(${COMPONENT_TARGET} PRIVATE "-D MFI_VER=\"${MFI_VER}\"")
 # Added just to automatically trigger re-runs of CMake
