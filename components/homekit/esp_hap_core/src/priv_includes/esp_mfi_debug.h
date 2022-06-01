@@ -59,7 +59,8 @@ extern "C"{
 #define ESP_MFI_DEBUG_ASSERT    4
 #define ESP_MFI_DEBUG_BLOCK     5
 
-#if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 2, 2)
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
+#include <esp_rom_sys.h>
 #define esp_intr_printf esp_rom_printf
 #else
 #define esp_intr_printf ets_printf
