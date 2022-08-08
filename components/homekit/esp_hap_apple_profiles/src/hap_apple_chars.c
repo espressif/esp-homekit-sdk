@@ -298,13 +298,21 @@ hap_char_t *hap_char_rotation_direction_create(int rotation_direction)
 /* Char: Rotation Speed */
 hap_char_t *hap_char_rotation_speed_create(float rotation_speed)
 {
+    hap_char_t *hc = hap_char_rotation_speed_with_step_create(rotation_speed, 1);
+
+    return hc;
+}
+
+/* Char: Rotation Speed with step */
+hap_char_t *hap_char_rotation_speed_with_step_create(float rotation_speed, float step)
+{
     hap_char_t *hc = hap_char_float_create(HAP_CHAR_UUID_ROTATION_SPEED,
                                            HAP_CHAR_PERM_PR | HAP_CHAR_PERM_PW | HAP_CHAR_PERM_EV, rotation_speed);
     if (!hc) {
         return NULL;
     }
 
-    hap_char_float_set_constraints(hc, 0.0, 100.0, 1.0);
+    hap_char_float_set_constraints(hc, 0.0, 100.0, step);
     hap_char_add_unit(hc, HAP_CHAR_UNIT_PERCENTAGE);
 
     return hc;
