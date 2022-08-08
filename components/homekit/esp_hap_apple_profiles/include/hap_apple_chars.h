@@ -396,8 +396,11 @@ hap_char_t *hap_char_rotation_direction_create(int rotation_direction);
 
 /** Create Rotation Speed Characteristic
  *
- * This API creates the Rotation Speed characteristic object with other metadata
- * (format, constraints, permissions, etc.) set as per the HAP Specs
+ * This API creates the Rotation Speed characteristic object with minimal metadata
+ * (format, constraints, permissions, etc.) set as per the HAP Specs. The HAP spec 
+ * defines this characteristics with both rotation_speed and step metadata. This 
+ * legacy function accepts only rotation_speed to maintain backwards compatibility, 
+ * and calls hap_char_rotation_speed_with_step_create with the default step = 1. 
  *
  * @param[in] rotation_speed Initial value of Rotation Speed
  *
@@ -406,6 +409,19 @@ hap_char_t *hap_char_rotation_direction_create(int rotation_direction);
  */
 hap_char_t *hap_char_rotation_speed_create(float rotation_speed);
 
+/** Create Rotation Speed Characteristic with step
+ *
+ * This API creates the Rotation Speed characteristic object with other metadata
+ * (format, constraints, permissions, etc.) set as per the HAP Specs
+ *
+ * @param[in] rotation_speed Initial value of Rotation Speed
+ * @param[in] step Initial value of step
+ *
+ * @return Pointer to the characteristic object on success
+ * @return NULL on failure
+ */
+hap_char_t *hap_char_rotation_speed_with_step_create(float rotation_speed, float step);
+ 
 /** Create Saturation Characteristic
  *
  * This API creates the saturation characteristic object with other metadata
