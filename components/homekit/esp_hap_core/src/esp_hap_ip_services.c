@@ -1560,6 +1560,13 @@ httpd_handle_t * hap_httpd_get_handle()
 {
     return &hap_priv.server;
 }
+
+int hap_httpd_stop(void)
+{
+    hap_platform_httpd_stop(&hap_priv.server);
+    return HAP_SUCCESS;
+}
+
 static bool first_announce_done;
 
 int hap_mdns_deannounce(void)
@@ -1678,9 +1685,9 @@ int hap_mdns_announce(bool first)
     return HAP_SUCCESS;
 }
 
+static bool hap_ip_services_started;
 int hap_ip_services_start()
 {
-    static bool hap_ip_services_started;
     if (hap_ip_services_started) {
         return HAP_SUCCESS;
     }
@@ -1690,5 +1697,15 @@ int hap_ip_services_start()
         return HAP_FAIL;
     }
     hap_ip_services_started = true;
+    return HAP_SUCCESS;
+}
+
+int hap_ip_services_stop()
+{
+    if (hap_ip_services_started) {
+        hap_mdns_deannounce();
+        hap_unregister_http_handlers();
+        hap_ip_services_started = false;
+    }
     return HAP_SUCCESS;
 }

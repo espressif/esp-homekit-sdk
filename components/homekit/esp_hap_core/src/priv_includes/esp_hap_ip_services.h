@@ -28,7 +28,9 @@
 int hap_http_session_not_authorized(httpd_req_t *req);
 int hap_httpd_get_data(httpd_req_t *req, char *buffer, int len);
 int hap_httpd_start();
+int hap_httpd_stop();
 int hap_ip_services_start();
+int hap_ip_services_stop();
 int hap_mdns_announce(bool first);
 int hap_mdns_deannounce();
 void hap_http_send_notif();

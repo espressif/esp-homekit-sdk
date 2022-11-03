@@ -78,6 +78,15 @@ int hap_event_queue_init()
     }
 }
 
+int hap_event_queue_deinit()
+{
+    if (hap_event_queue) {
+        vQueueDelete(hap_event_queue);
+        hap_event_queue = NULL;
+    }
+    return HAP_SUCCESS;
+}
+
 hap_char_t * hap_get_pending_notif_char()
 {
     hap_char_t *hc;
