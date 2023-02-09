@@ -3,6 +3,7 @@
 #include <hap_apple_chars.h>
 #include <string.h>
 #include "emulator.h"
+#include <inttypes.h>
 #include "nvs.h"
 
 int hap_factory_keystore_set(const char *name_space, const char *key, const uint8_t *val, size_t val_size);
@@ -450,13 +451,13 @@ int emulator_write(hap_write_data_t write_data[], int count,
 static void emulator_print_char(hap_char_t *hc)
 {
     const hap_val_t *cval = hap_char_get_val(hc);
-    printf("C %d %s %s\n", hap_char_get_iid(hc),
+    printf("C %" PRId32 " %s %s\n", hap_char_get_iid(hc),
             hap_char_get_type_uuid(hc), emulator_print_value(hc, cval));
 }
 
 static void emulator_print_serv(hap_serv_t *hs)
 {
-    printf("S %d %s\n", hap_serv_get_iid(hs), hap_serv_get_type_uuid(hs));
+    printf("S %" PRId32 " %s\n", hap_serv_get_iid(hs), hap_serv_get_type_uuid(hs));
     hap_char_t *hc;
     for (hc = hap_serv_get_first_char(hs); hc; hc = hap_char_get_next(hc)) {
         emulator_print_char(hc);
@@ -465,7 +466,7 @@ static void emulator_print_serv(hap_serv_t *hs)
 
 static void emulator_print_acc(hap_acc_t *ha)
 {
-    printf("A %d\n", hap_acc_get_aid(ha));
+    printf("A %" PRId32 "\n", hap_acc_get_aid(ha));
     hap_serv_t *hs;
     for (hs = hap_acc_get_first_serv(ha); hs; hs = hap_serv_get_next(hs)) {
         emulator_print_serv(hs);

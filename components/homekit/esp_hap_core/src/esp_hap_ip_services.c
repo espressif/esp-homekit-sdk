@@ -1594,7 +1594,7 @@ int hap_mdns_announce(bool first)
     mdns_txt_item_t txt[9];
     int i = 0;
 
-    snprintf(config_num, sizeof(config_num), "%d", hap_priv.config_num);
+    snprintf(config_num, sizeof(config_num), "%" PRId32, hap_priv.config_num);
     txt[i].key = "c#";
     txt[i++].value = config_num;
 

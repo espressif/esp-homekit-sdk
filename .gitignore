@@ -39,3 +39,9 @@ tools/factory_nvs_gen/*.csv
 
 #CTags
 tags
+
+# Managed components
+examples/**/managed_components/*
+
+# Dependency lock files
+dependencies.lock

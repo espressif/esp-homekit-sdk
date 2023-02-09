@@ -48,10 +48,15 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER "4.1")
     list(APPEND priv_req esp_timer)
 endif()
 
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.0")
+    list(APPEND priv_req esp_wifi)
+    list(APPEND req esp_event)
+endif()
+
 idf_component_register(SRCS ${srcs}
                        INCLUDE_DIRS "include"
                        PRIV_INCLUDE_DIRS ${priv_includes}
-                       REQUIRES
+                       REQUIRES ${req}
                        PRIV_REQUIRES ${priv_req})
 component_compile_options(-Wno-unused-function)
 target_compile_definitions(${COMPONENT_TARGET} PRIVATE "-D MFI_VER=\"${MFI_VER}\"")

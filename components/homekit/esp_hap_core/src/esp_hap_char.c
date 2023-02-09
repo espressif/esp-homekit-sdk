@@ -180,8 +180,9 @@ int hap_char_update_val(hap_char_t *hc, hap_val_t *val)
     }
     __hap_char_t *_hc = (__hap_char_t *)hc;
     _hc->update_called = true;
-    if (hap_char_check_val_constraints(_hc, val) != HAP_SUCCESS)
+    if (hap_char_check_val_constraints(_hc, val) != HAP_SUCCESS) {
         return HAP_FAIL;
+    }
 	/* Boolean to track if the value has changed.
 	 * This will be later used to decide if an event notification
 	 * is required or not. If the new and old values are same,

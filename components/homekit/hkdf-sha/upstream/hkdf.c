@@ -315,7 +315,7 @@ int hkdfFinalBits(HKDFContext *context, uint8_t ikm_bits,
 int hkdfResult(HKDFContext *context,
                uint8_t prk[USHAMaxHashSize],
                const unsigned char *info, int info_len,
-               uint8_t okm[ ], int okm_len)
+               uint8_t okm[USHAMaxHashSize], int okm_len)
 {
   uint8_t prkbuf[USHAMaxHashSize];
   int ret;
@@ -332,4 +332,3 @@ int hkdfResult(HKDFContext *context,
   context->Computed = 1;
   return context->Corrupted = ret;
 }
-

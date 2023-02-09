@@ -1,23 +1,29 @@
 stages:
   - build
 
-build_homekit_examples:
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  
+.build_template:
   stage: build
-  image: $CI_DOCKER_REGISTRY/$CI_IMAGE
+  image: espressif/idf:latest
   tags:
     - build
-
-  variables:
-    IDF_PATH: "$CI_PROJECT_DIR/esp-idf"
-    GIT_STRATEGY: clone
     
+  variables:
+    EXAMPLES: "aws-iot bridge data_tlv8 emulator fan lightbulb smart_outlet"
+    EXAMPLE_TARGETS: "esp32"
+
   artifacts:
     paths:
       - examples/fan/build/*.bin
       - examples/fan/build/*.elf
       - examples/fan/build/*.map
       - examples/fan/build/bootloader/*.bin
-    expire_in: 6 mos
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/esp-homekit-sdk-bins-${CI_JOB_ID}.zip
+    expire_in: 3 mos
 
   before_script:
     - mkdir -p ~/.ssh
@@ -27,31 +33,49 @@ build_homekit_examples:
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-  script:
-    - git submodule update --init --recursive
-    # Cloning esp-idf
-    - git clone --recursive --single-branch --branch ${IDF_GIT_BRANCH} --depth 1 ${IDF_GIT_PATH}/esp-idf.git
-    - cd esp-idf
-    - ./install.sh
-    - . export.sh
-
-    - cd ../examples/fan
-    - idf.py build
-    - cd ../bridge
-    - idf.py build
-    - cd ../lightbulb
-    - idf.py build
-    - cd ../smart_outlet
-    - idf.py build
-    - cd ../data_tlv8
-    - idf.py build
-    - cd ../aws-iot
+  script: 
+    - for EXAMPLE in $EXAMPLES; do
+    - cd $CI_PROJECT_DIR/examples/$EXAMPLE
+    - echo Building $EXAMPLE
+    - if [[ "$EXAMPLE" == "aws-iot" ]]; then
     - mkdir components
     - cd components
+    - echo Cloning esp-aws-iot
     - git clone --depth 1 -b release/v3.1.x --single-branch --recursive https://github.com/espressif/esp-aws-iot.git
     - export AWS_IOT_PATH=$PWD/esp-aws-iot
     - cd ..
     - touch main/certs/device.crt main/certs/device.key
+    - fi
+    - for TARGET in $EXAMPLE_TARGETS; do
+    - echo Building for $TARGET
+    - idf.py set-target $TARGET
     - idf.py build
-    - cd ../emulator
-    - idf.py build
+    - mkdir -p $CI_PROJECT_DIR/esp-homekit-sdk-bins-${CI_JOB_ID}/$EXAMPLE/$TARGET/
+    - cp $CI_PROJECT_DIR/examples/$EXAMPLE/build/*.bin $CI_PROJECT_DIR/esp-homekit-sdk-bins-${CI_JOB_ID}/$EXAMPLE/$TARGET/
+    - done
+    - echo Build Complete for $EXAMPLE
+    - done
+    # Generating zip file for binaries generated
+    - cd $CI_PROJECT_DIR
+    - echo Generating zip file for binaries generated
+    - tar -zcvf esp-homekit-sdk-bins-${CI_JOB_ID}.zip esp-homekit-sdk-bins-${CI_JOB_ID}/
+
+build_idf_v4.1:
+  extends: .build_template
+  image: espressif/idf:release-v4.1
+
+build_idf_v4.2:
+  extends: .build_template
+  image: espressif/idf:release-v4.2
+
+build_idf_v4.3:
+  extends: .build_template
+  image: espressif/idf:release-v4.3
+
+build_idf_v4.4:
+  extends: .build_template
+  image: espressif/idf:release-v4.4
+
+build_idf_v5.0:
+  extends: .build_template
+  image: espressif/idf:release-v5.0
