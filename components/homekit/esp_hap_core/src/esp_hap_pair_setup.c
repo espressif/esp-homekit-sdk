@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <inttypes.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
 #include <mu_srp.h>
@@ -33,7 +34,6 @@
 #include <hexdump.h>
 #include <hap_platform_memory.h>
 #include <hap_platform_os.h>
-
 #include <esp_hap_ip_services.h>
 #include <esp_hap_pair_common.h>
 #include <esp_hap_pair_setup.h>
@@ -144,7 +144,7 @@ static int hap_pair_setup_process_srp_start(pair_setup_ctx_t *ps_ctx, uint8_t *b
     int flags_len;
     if ((flags_len = get_value_from_tlv(buf, inlen, kTLVType_Flags, &ps_ctx->pairing_flags, sizeof(ps_ctx->pairing_flags))) > 0) {
         ps_ctx->pairing_flags_len = flags_len;
-        ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Got pairing flags %x", ps_ctx->pairing_flags);
+        ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Got pairing flags %" PRIx32, ps_ctx->pairing_flags);
 
         /* If the Split pairing flag is not set, it is an error */
         if (!(ps_ctx->pairing_flags & PAIR_FLAG_SPLIT)) {

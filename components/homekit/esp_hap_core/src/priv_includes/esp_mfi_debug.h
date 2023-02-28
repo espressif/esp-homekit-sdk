@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <esp_idf_version.h>
+#include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -103,7 +104,7 @@ uint32_t esp_mfi_get_debug_level(uint32_t level, uint32_t *color);
     {                                                                                       \
         uint32_t __color_LINE;                                                              \
         if (l > esp_mfi_get_debug_level(l, &__color_LINE)) {                                \
-            printf("\e[1;%dm" fmt "\e[0m" ESP_MFI_DEBUG_FL,                         \
+            printf("\e[1;%" PRId32 "m" fmt "\e[0m" ESP_MFI_DEBUG_FL,                         \
                                 __color_LINE,  ##__VA_ARGS__);                              \
         }                                                                                   \
     }

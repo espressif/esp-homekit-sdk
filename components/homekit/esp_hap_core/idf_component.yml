@@ -4,3 +4,7 @@ dependencies:
     version: "~1.0.20"
     rules:
       - if: "idf_version >=5.0"
+  espressif/mdns:
+    rules:
+      - if: "idf_version >=5.0"
+    
