@@ -90,6 +90,7 @@ bool hap_char_is_ctrl_owner(hap_char_t *hc, int index);
 void hap_disable_all_char_notif(int index);
 int hap_char_check_val_constraints(__hap_char_t *_hc, hap_val_t *val);
 int hap_event_queue_init();
+int hap_event_queue_deinit();
 hap_char_t * hap_get_pending_notif_char();
 #ifdef __cplusplus
 }
