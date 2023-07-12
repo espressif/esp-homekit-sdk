@@ -60,27 +60,6 @@ variables:
     - echo Generating zip file for binaries generated
     - tar -zcvf esp-homekit-sdk-bins-${CI_JOB_ID}.zip esp-homekit-sdk-bins-${CI_JOB_ID}/
 
-build_idf_v4.1:
-  extends: .build_template
-  image: espressif/idf:release-v4.1
-  variables:
-    EXAMPLE_TARGETS: "esp32"
-    EXAMPLES: aws-iot bridge data_tlv8 fan lightbulb smart_outlet
-
-build_idf_v4.2:
-  extends: .build_template
-  image: espressif/idf:release-v4.2
-  variables:
-    EXAMPLE_TARGETS: "esp32 esp32s2"
-    EXAMPLES: aws-iot bridge data_tlv8 fan lightbulb smart_outlet
-
-build_idf_v4.3:
-  extends: .build_template
-  image: espressif/idf:release-v4.3
-  variables:
-    EXAMPLE_TARGETS: "esp32 esp32s2 esp32c3"
-    EXAMPLES: aws-iot bridge data_tlv8 fan lightbulb smart_outlet
-
 build_idf_v4.4:
   extends: .build_template
   image: espressif/idf:release-v4.4
