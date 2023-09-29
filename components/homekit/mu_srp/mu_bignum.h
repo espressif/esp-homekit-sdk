@@ -199,10 +199,32 @@ static inline int mu_bn_a_exp_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, m
     return mbedtls_mpi_exp_mod(result, a, b, c, (mu_bn_t *) ctx);
 }
 
+#if CONFIG_MBEDTLS_HARDWARE_MPI
 static inline int mu_bn_a_mul_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, mu_bn_t *c, mu_bn_ctx_t *ctx)
 {
     return esp_mpi_mul_mpi_mod(result, a, b, c);
 }
+#else
+static inline int mu_bn_a_mul_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, mu_bn_t *c, mu_bn_ctx_t *ctx)
+{
+    (void) ctx;
+    int res;
+    mbedtls_mpi t;
+    mbedtls_mpi_init(&t);
+    res = mbedtls_mpi_mul_mpi(&t, a, b);
+    if (res != 0) {
+        printf("mbedtls_mpi_mul_mpi(), returned %x\n", res);
+        return res;
+    }
+    res = mbedtls_mpi_mod_mpi(result, &t, c);
+    if (res != 0) {
+        printf("mbedtls_mpi_mod_mpi() failed, returned %x\n", res);
+        return res;
+    }
+    mbedtls_mpi_free(&t);
+    return res;
+}
+#endif
 #endif /* !CONFIG_IDF_TARGET_ESP8266 */
 
 static inline int mu_bn_a_add_b_mod_c(mu_bn_t *result, mu_bn_t *a, mu_bn_t *b, mu_bn_t *c, mu_bn_ctx_t *ctx)
