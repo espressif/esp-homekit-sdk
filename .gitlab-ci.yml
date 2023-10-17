@@ -3,13 +3,13 @@ stages:
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  
+
 .build_template:
   stage: build
   image: espressif/idf:latest
   tags:
     - build
-    
+
   variables:
     EXAMPLES: "aws-iot bridge data_tlv8 emulator fan lightbulb smart_outlet"
     EXAMPLE_TARGETS: "esp32 esp32c3 esp32s3"
@@ -33,7 +33,7 @@ variables:
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-  script: 
+  script:
     - for EXAMPLE in $EXAMPLES; do
     - cd $CI_PROJECT_DIR/examples/$EXAMPLE
     - echo Building $EXAMPLE
@@ -89,3 +89,9 @@ build_idf_v5.0:
   image: espressif/idf:release-v5.0
   variables:
     EXAMPLE_TARGETS: "esp32 esp32s2 esp32c3 esp32s3"
+
+build_idf_v5.1:
+  extends: .build_template
+  image: espressif/idf:release-v5.1
+  variables:
+    EXAMPLE_TARGETS: "esp32 esp32s2 esp32c3 esp32s3 esp32c2 esp32c6"
