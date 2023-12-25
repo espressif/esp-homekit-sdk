@@ -15,7 +15,7 @@ if(NOT DEFINED ENV{AWS_IOT_PATH})
     message(FATAL_ERROR "Please set AWS_IOT_PATH to esp-aws-iot repo")
 endif(NOT DEFINED ENV{AWS_IOT_PATH})
 
-set(EXTRA_COMPONENT_DIRS ${HOMEKIT_PATH}/components ${HOMEKIT_PATH}/components/homekit $ENV{AWS_IOT_PATH}/../ ${CMAKE_CURRENT_LIST_DIR}/../common)
+set(EXTRA_COMPONENT_DIRS ${HOMEKIT_PATH}/components ${HOMEKIT_PATH}/components/homekit $ENV{AWS_IOT_PATH}/../ ${HOMEKIT_PATH}/examples/common)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(aws-iot)
