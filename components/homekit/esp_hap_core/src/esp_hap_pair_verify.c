@@ -54,6 +54,10 @@ typedef struct {
 	 * of whether the context points to pair_verify_ctx_t or hap_secure_session_t.
 	 */
 	uint8_t state;
+	/* This is to identify pair setup vs pair verify, since both of these operation
+	 * can happen on the same socket and can have similar states
+	 */
+	uint8_t process;
 	uint8_t ctrl_curve_pk[CURVE_KEY_LEN];
 	uint8_t acc_curve_pk[CURVE_KEY_LEN];
 	uint8_t hkdf_key[ENCRYPT_KEY_LEN];
@@ -459,9 +463,17 @@ int hap_pair_verify_context_init(void **ctx, uint8_t *buf, int bufsize, int *out
 		hap_prepare_error_tlv(STATE_M2, kTLVError_Unknown, buf, bufsize, outlen);
 		return HAP_FAIL;
 	}
+    pv_ctx->process = PROCESS_PAIR_VERIFY;
 	*ctx = pv_ctx;
 	ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "######## Starting Pair Verify ########");
 	return HAP_SUCCESS;
+}
+
+void hap_pair_verify_context_deinit(void *pv_ctx)
+{
+    if (pv_ctx) {
+        hap_platform_memory_free(pv_ctx);
+    }
 }
 
 uint8_t hap_pair_verify_get_state(void *ctx)

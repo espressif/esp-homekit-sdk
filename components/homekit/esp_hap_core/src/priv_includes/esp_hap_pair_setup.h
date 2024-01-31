@@ -39,6 +39,7 @@
 
 typedef struct {
 	uint8_t state;
+    uint8_t process;
 	uint8_t method;
     uint32_t pairing_flags;
     int8_t pairing_flags_len;
