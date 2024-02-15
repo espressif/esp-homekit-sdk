@@ -26,19 +26,19 @@
 httpd_handle_t *int_handle;
 int hap_platform_httpd_start(httpd_handle_t *handle)
 {
-    httpd_config_t config = {
-        .task_priority  = tskIDLE_PRIORITY+5,
-        .stack_size         = CONFIG_HAP_HTTP_STACK_SIZE,
-        .server_port        = CONFIG_HAP_HTTP_SERVER_PORT,
-        .ctrl_port          = CONFIG_HAP_HTTP_CONTROL_PORT,
-        .max_open_sockets   = CONFIG_HAP_HTTP_MAX_OPEN_SOCKETS,
-        .max_uri_handlers   = CONFIG_HAP_HTTP_MAX_URI_HANDLERS,
-        .max_resp_headers   = 8,
-        .backlog_conn       = 5,
-        .lru_purge_enable   = true,
-        .recv_wait_timeout  = 5,
-        .send_wait_timeout  = 5,
-    };
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.task_priority  = tskIDLE_PRIORITY+5;
+    config.stack_size         = CONFIG_HAP_HTTP_STACK_SIZE;
+    config.server_port        = CONFIG_HAP_HTTP_SERVER_PORT;
+    config.ctrl_port          = CONFIG_HAP_HTTP_CONTROL_PORT;
+    config.max_open_sockets   = CONFIG_HAP_HTTP_MAX_OPEN_SOCKETS;
+    config.max_uri_handlers   = CONFIG_HAP_HTTP_MAX_URI_HANDLERS;
+    config.max_resp_headers   = 8;
+    config.backlog_conn       = 5;
+    config.lru_purge_enable   = true;
+    config.recv_wait_timeout  = 5;
+    config.send_wait_timeout  = 5;
+
     esp_err_t err =  httpd_start(handle, &config);
     if (err == ESP_OK) {
         int_handle = handle;
