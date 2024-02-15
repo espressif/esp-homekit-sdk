@@ -8,7 +8,7 @@ else()
   set(HOMEKIT_PATH ${CMAKE_CURRENT_LIST_DIR}/../..)
 endif(DEFINED ENV{HOMEKIT_PATH})
 
-set(EXTRA_COMPONENT_DIRS ${HOMEKIT_PATH}/components ${HOMEKIT_PATH}/components/homekit ${CMAKE_CURRENT_LIST_DIR}/../common)
+set(EXTRA_COMPONENT_DIRS ${HOMEKIT_PATH}/components ${HOMEKIT_PATH}/components/homekit ${HOMEKIT_PATH}/examples/common)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(bridge)
