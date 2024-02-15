@@ -42,6 +42,9 @@
 #define STATE_VERIFIED		0x55
 #define STATE_INVALID		0xaa
 
+#define PROCESS_PAIR_SETUP  0x33
+#define PROCESS_PAIR_VERIFY 0xcc
+
 typedef enum {
 	HAP_METHOD_RESERVED = 0,
 	HAP_METHOD_PAIR_SETUP = 1,

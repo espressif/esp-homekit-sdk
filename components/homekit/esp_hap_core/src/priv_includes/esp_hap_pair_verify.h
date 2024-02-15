@@ -26,6 +26,7 @@
 #include <esp_hap_pair_common.h>
 #include <esp_hap_controllers.h>
 int hap_pair_verify_context_init(void **ctx, uint8_t *buf, int bufsize, int *outlen);
+void hap_pair_verify_context_deinit(void *pv_ctx);
 int hap_pair_verify_process(void **ctx, uint8_t *buf, int inlen, int bufsize, int *outlen);
 uint8_t hap_pair_verify_get_state(void *ctx);
 void hap_free_session(void *session);

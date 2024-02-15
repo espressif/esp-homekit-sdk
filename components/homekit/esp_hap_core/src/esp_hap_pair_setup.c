@@ -37,6 +37,7 @@
 #include <esp_hap_ip_services.h>
 #include <esp_hap_pair_common.h>
 #include <esp_hap_pair_setup.h>
+#include <esp_hap_pair_verify.h>
 #include <esp_hap_database.h>
 #include <esp_hap_main.h>
 #include <esp_hap_acc.h>
@@ -486,6 +487,7 @@ static pair_setup_ctx_t *hap_pair_setup_ctx_action(int action)
 		else {
 			ps_ctx = hap_platform_memory_calloc(sizeof(pair_setup_ctx_t), 1);
             if (ps_ctx) {
+                ps_ctx->process = PROCESS_PAIR_SETUP;
                 ps_ctx->timer = xTimerCreate("hap_setup_timer", HAP_SETUP_TIMEOUT_IN_TICKS,
                             pdFALSE, (void *) ps_ctx, hap_pair_setup_timeout);
                 xTimerStart(ps_ctx->timer, 0);
@@ -512,7 +514,7 @@ static pair_setup_ctx_t *hap_pair_setup_ctx_action(int action)
 void hap_pair_setup_ctx_clean(void *sess_ctx)
 {
 	if (sess_ctx) {
-        ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Cleaning Pair Setup Context");
+        ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Clearing Pair Setup Context");
 		hap_pair_setup_ctx_action(PS_CTX_DEINIT);
     }
 }
@@ -545,9 +547,18 @@ int hap_pair_setup_process(void **ctx, uint8_t *buf, int inlen, int bufsize, int
 	 * that pair setup was restarted. Handle it accordingly
 	 */
 	if ((recv_state == STATE_M1) && (ps_ctx->state != STATE_M0)) {
-		ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Restarting Pair Setup");
         int sock_fd = ps_ctx->sock_fd;
-		hap_pair_setup_ctx_clean(ps_ctx);
+        if (ps_ctx->process == PROCESS_PAIR_VERIFY) {
+		    ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Clearing Pair Verify Context");
+            hap_pair_verify_context_deinit(ps_ctx);
+        } else if (ps_ctx->process == PROCESS_PAIR_SETUP) {
+		    ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Restarting Pair Setup");
+		    hap_pair_setup_ctx_clean(ps_ctx);
+        } else {
+            ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Invalid Pair Setup Context");
+            hap_prepare_error_tlv(recv_state + 1, kTLVError_Unknown, buf, bufsize, outlen);
+            return HAP_FAIL;
+        }
 		int ret = hap_pair_setup_context_init(sock_fd, ctx, buf, bufsize, outlen);
 		if (ret != HAP_SUCCESS)
 			return ret;
