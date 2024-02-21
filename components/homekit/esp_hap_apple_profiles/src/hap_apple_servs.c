@@ -704,3 +704,17 @@ err:
     return NULL;
 }
 
+hap_serv_t *hap_serv_doorbell_create(uint8_t programmable_switch_event)
+{
+    hap_serv_t *hs = hap_serv_create(HAP_SERV_UUID_DOORBELL);
+    if (!hs) {
+        return NULL;
+    }
+    if (hap_serv_add_char(hs, hap_char_programmable_switch_event_create(programmable_switch_event)) != HAP_SUCCESS) {
+        goto err;
+    }
+    return hs;
+err:
+    hap_serv_delete(hs);
+    return NULL;
+}

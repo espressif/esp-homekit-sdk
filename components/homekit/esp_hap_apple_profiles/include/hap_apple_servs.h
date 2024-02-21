@@ -74,6 +74,7 @@ extern "C" {
 #define HAP_SERV_UUID_IRRIGATION_SYSTEM             "CF"
 #define HAP_SERV_UUID_VALVE                         "D0"
 #define HAP_SERV_UUID_FAUCET                        "D7"
+#define HAP_SERV_UUID_DOORBELL                      "121"
 
 /** Create Accessory Information Service
  *
@@ -552,6 +553,18 @@ hap_serv_t *hap_serv_valve_create(uint8_t active, uint8_t in_use, uint8_t valve_
  * @return NULL on failure
  */
 hap_serv_t *hap_serv_faucet_create(uint8_t active);
+
+/** Create Doorbell Service
+ *
+ * This API will create the Doorbell Service with the mandatory
+ * characteristics as per the HAP Specs.
+ *
+ * @param[in]  programmable_switch_event  Initial value of Programmable Switch Event characteristic
+ *
+ * @return Pointer to the service object on success
+ * @return NULL on failure
+ */
+hap_serv_t *hap_serv_doorbell_create(uint8_t programmable_switch_event);
 
 #ifdef __cplusplus
 }
