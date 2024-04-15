@@ -14,13 +14,13 @@ menu "Example Configuration"
         default "111-22-333"
         depends on EXAMPLE_USE_HARDCODED_SETUP_CODE
         help
-            Setup code to be used for HomeKot pairing, if hard-coded setup code is enabled.
+            Setup code to be used for HomeKit pairing, if hard-coded setup code is enabled.
 
     config EXAMPLE_SETUP_ID
         string "HomeKit Setup Id"
         default "ES32"
         depends on EXAMPLE_USE_HARDCODED_SETUP_CODE
         help
-            Setup id to be used for HomeKot pairing, if hard-coded setup code is enabled.
+            Setup id to be used for HomeKit pairing, if hard-coded setup code is enabled.
 
 endmenu
