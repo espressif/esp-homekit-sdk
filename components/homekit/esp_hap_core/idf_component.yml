@@ -1,5 +1,11 @@
 ## IDF Component Manager Manifest File
 dependencies:
+  espressif/json_generator:
+    override_path: "../json_generator"
+
+  espressif/json_parser:
+    override_path: "../json_parser"
+
   espressif/libsodium:
     version: "~1.0.20"
     rules:
