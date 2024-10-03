@@ -38,6 +38,12 @@
 
 #include <app_wifi.h>
 #include <app_hap_setup_payload.h>
+#include "esp_netif.h"
+#include "esp_eth.h"
+#include "esp_event.h"
+#include "esp_log.h"
+#include "ethernet_init.h"
+#include "sdkconfig.h"
 
 static const char *TAG = "HAP outlet";
 
@@ -45,7 +51,7 @@ static const char *TAG = "HAP outlet";
 #define SMART_OUTLET_TASK_STACKSIZE 4 * 1024
 #define SMART_OUTLET_TASK_NAME      "hap_outlet"
 
-#define OUTLET_IN_USE_GPIO GPIO_NUM_0
+#define OUTLET_IN_USE_GPIO GPIO_NUM_4
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
@@ -127,6 +133,53 @@ static int outlet_write(hap_write_data_t write_data[], int count,
     return ret;
 }
 
+static void got_ip_event_handler(void *arg, esp_event_base_t event_base,
+                                 int32_t event_id, void *event_data)
+{
+    ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+    const esp_netif_ip_info_t *ip_info = &event->ip_info;
+
+    ESP_LOGI(TAG, "Ethernet Got IP Address");
+    ESP_LOGI(TAG, "~~~~~~~~~~~");
+    ESP_LOGI(TAG, "IP: " IPSTR, IP2STR(&ip_info->ip));
+    ESP_LOGI(TAG, "MASK: " IPSTR, IP2STR(&ip_info->netmask));
+    ESP_LOGI(TAG, "GW: " IPSTR, IP2STR(&ip_info->gw));
+    ESP_LOGI(TAG, "~~~~~~~~~~~");
+}
+
+void eth_init(void)
+{
+    uint8_t eth_port_cnt = 0;
+    esp_eth_handle_t *eth_handles;
+
+    // Initialize TCP/IP network interface aka the esp-netif (should be called only once in application)
+    ESP_ERROR_CHECK(esp_netif_init());
+    // Create default event loop that running in background
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    // Initialize Ethernet driver
+    ESP_ERROR_CHECK(ethernet_init_all(&eth_handles, &eth_port_cnt));
+
+    if (eth_port_cnt != 1) {
+        ESP_LOGE(TAG, "Error: Only one Ethernet instance is supported in this example");
+        abort();
+    }
+
+    // Use ESP_NETIF_DEFAULT_ETH when just one Ethernet interface is used and you don't need to modify
+    // default esp-netif configuration parameters.
+    esp_netif_config_t cfg = ESP_NETIF_DEFAULT_ETH();
+    esp_netif_t *eth_netif = esp_netif_new(&cfg);
+    // Attach Ethernet driver to TCP/IP stack
+    ESP_ERROR_CHECK(esp_netif_attach(eth_netif, esp_eth_new_netif_glue(eth_handles[0])));
+
+    // Register user defined event handers
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, &got_ip_event_handler, NULL));
+
+    // Start Ethernet driver state machine
+    ESP_ERROR_CHECK(esp_eth_start(eth_handles[0]));
+}
+
+
 /*The main thread for handling the Smart Outlet Accessory */
 static void smart_outlet_thread_entry(void *p)
 {
@@ -206,12 +259,13 @@ static void smart_outlet_thread_entry(void *p)
     hap_enable_mfi_auth(HAP_MFI_AUTH_HW);
 
     /* Initialize Wi-Fi */
-    app_wifi_init();
+    // app_wifi_init();
+    eth_init();
 
     /* After all the initializations are done, start the HAP core */
     hap_start();
     /* Start Wi-Fi */
-    app_wifi_start(portMAX_DELAY);
+    // app_wifi_start(portMAX_DELAY);
 
     uint32_t io_num = OUTLET_IN_USE_GPIO;
     hap_val_t appliance_value = {
