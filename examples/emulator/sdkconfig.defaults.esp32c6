@@ -1,0 +1,2 @@
+# perform the size optimized builds for C6 to avoid app size overflow
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
