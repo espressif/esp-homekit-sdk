@@ -74,13 +74,13 @@ static void hap_pairing_mode_timeout(TimerHandle_t handle)
 
 void hap_start_pairing_mode_timer(void)
 {
-    if (!hap_priv.pairing_mode_timer) {
-        hap_priv.pairing_mode_timer = xTimerCreate("hap_pairing_mode_timer", HAP_PAIRING_MODE_TIMEOUT_IN_TICKS,
-                pdFALSE, NULL, hap_pairing_mode_timeout);
-    }
-    if (hap_priv.pairing_mode_timer) {
-        xTimerStart(hap_priv.pairing_mode_timer, 0);
-    }
+    // if (!hap_priv.pairing_mode_timer) {
+    //     hap_priv.pairing_mode_timer = xTimerCreate("hap_pairing_mode_timer", HAP_PAIRING_MODE_TIMEOUT_IN_TICKS,
+    //             pdFALSE, NULL, hap_pairing_mode_timeout);
+    // }
+    // if (hap_priv.pairing_mode_timer) {
+    //     xTimerStart(hap_priv.pairing_mode_timer, 0);
+    // }
 }
 
 void hap_stop_pairing_mode_timer(void)
