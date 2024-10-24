@@ -43,6 +43,7 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "ethernet_init.h"
+#include "mdns.h"
 #include "sdkconfig.h"
 
 static const char *TAG = "HAP outlet";
@@ -133,18 +134,49 @@ static int outlet_write(hap_write_data_t write_data[], int count,
     return ret;
 }
 
-static void got_ip_event_handler(void *arg, esp_event_base_t event_base,
+static void start_probing(void *ctx)
+{
+    esp_netif_t* esp_netif = (esp_netif_t*)ctx;
+    vTaskDelay((2 * 1000) / portTICK_PERIOD_MS);
+    ESP_LOGI(TAG, "MDNS_EVENT_ENABLE_IP4");
+    if (mdns_netif_action(esp_netif, MDNS_EVENT_ENABLE_IP4) != ESP_OK) {
+        // this is still okay, as the netif might have been deinit in the meantime
+        ESP_LOGW(TAG, "Failed to run mdns action: MDNS_EVENT_ENABLE_IP4");
+    }
+    vTaskDelete(NULL);
+}
+
+static void event_handler(void *arg, esp_event_base_t event_base,
                                  int32_t event_id, void *event_data)
 {
-    ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
-    const esp_netif_ip_info_t *ip_info = &event->ip_info;
+    static esp_netif_t *s_netif = NULL;
+    if (event_base == IP_EVENT) {
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+        const esp_netif_ip_info_t *ip_info = &event->ip_info;
+        if (s_netif == NULL) {
+            // expect mdns has been initialized already
+            s_netif = event->esp_netif;
+            ESP_ERROR_CHECK(mdns_register_netif(s_netif));
+        }
 
-    ESP_LOGI(TAG, "Ethernet Got IP Address");
-    ESP_LOGI(TAG, "~~~~~~~~~~~");
-    ESP_LOGI(TAG, "IP: " IPSTR, IP2STR(&ip_info->ip));
-    ESP_LOGI(TAG, "MASK: " IPSTR, IP2STR(&ip_info->netmask));
-    ESP_LOGI(TAG, "GW: " IPSTR, IP2STR(&ip_info->gw));
-    ESP_LOGI(TAG, "~~~~~~~~~~~");
+        ESP_LOGI(TAG, "Ethernet Got IP Address");
+        ESP_LOGI(TAG, "~~~~~~~~~~~");
+        ESP_LOGI(TAG, "IP: " IPSTR, IP2STR(&ip_info->ip));
+        ESP_LOGI(TAG, "MASK: " IPSTR, IP2STR(&ip_info->netmask));
+        ESP_LOGI(TAG, "GW: " IPSTR, IP2STR(&ip_info->gw));
+        ESP_LOGI(TAG, "~~~~~~~~~~~");
+        if (s_netif) {
+            ESP_LOGI(TAG, "MDNS probing starts in 2 seconds...");
+            xTaskCreate(start_probing, "start_probes", 4096, s_netif, 5, NULL);
+        }
+    } else if (event_base == ETH_EVENT) {
+        ESP_LOGI(TAG, "Ethernet disconnected");
+        if (s_netif) {
+            ESP_LOGW(TAG, "MDNS_EVENT_DISABLE_IP4");
+            ESP_ERROR_CHECK(mdns_netif_action(s_netif, MDNS_EVENT_DISABLE_IP4 ));
+            s_netif = NULL;
+        }
+    }
 }
 
 void eth_init(void)
@@ -173,7 +205,8 @@ void eth_init(void)
     ESP_ERROR_CHECK(esp_netif_attach(eth_netif, esp_eth_new_netif_glue(eth_handles[0])));
 
     // Register user defined event handers
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, &got_ip_event_handler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, event_handler, NULL)); // -> to start mDNS probing
+    ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ETHERNET_EVENT_DISCONNECTED, event_handler, NULL)); // -> to notify mDNS to stop
 
     // Start Ethernet driver state machine
     ESP_ERROR_CHECK(esp_eth_start(eth_handles[0]));
