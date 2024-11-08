@@ -134,23 +134,13 @@ static int outlet_write(hap_write_data_t write_data[], int count,
     return ret;
 }
 
-static void start_probing(void *ctx)
-{
-    esp_netif_t* esp_netif = (esp_netif_t*)ctx;
-    vTaskDelay((2 * 1000) / portTICK_PERIOD_MS);
-    ESP_LOGI(TAG, "MDNS_EVENT_ENABLE_IP4");
-    if (mdns_netif_action(esp_netif, MDNS_EVENT_ENABLE_IP4) != ESP_OK) {
-        // this is still okay, as the netif might have been deinit in the meantime
-        ESP_LOGW(TAG, "Failed to run mdns action: MDNS_EVENT_ENABLE_IP4");
-    }
-    vTaskDelete(NULL);
-}
+static esp_netif_t *eth_netif = NULL;
 
 static void event_handler(void *arg, esp_event_base_t event_base,
                                  int32_t event_id, void *event_data)
 {
     static esp_netif_t *s_netif = NULL;
-    if (event_base == IP_EVENT) {
+    if (event_base == IP_EVENT && event_id == IP_EVENT_ETH_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
         const esp_netif_ip_info_t *ip_info = &event->ip_info;
         if (s_netif == NULL) {
@@ -166,14 +156,37 @@ static void event_handler(void *arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "GW: " IPSTR, IP2STR(&ip_info->gw));
         ESP_LOGI(TAG, "~~~~~~~~~~~");
         if (s_netif) {
-            ESP_LOGI(TAG, "MDNS probing starts in 2 seconds...");
-            xTaskCreate(start_probing, "start_probes", 4096, s_netif, 5, NULL);
+            ESP_LOGI(TAG, "MDNS probing on IPv4 starting");
+            if (mdns_netif_action(s_netif, MDNS_EVENT_ENABLE_IP4) != ESP_OK) {
+                // this is still okay, as the netif might have been deinit in the meantime
+                ESP_LOGW(TAG, "Failed to run mdns action: MDNS_EVENT_ENABLE_IP4");
+            }
         }
-    } else if (event_base == ETH_EVENT) {
+    } else if (event_base == IP_EVENT && event_id == IP_EVENT_GOT_IP6) {
+        ip_event_got_ip6_t *event = (ip_event_got_ip6_t *)event_data;
+        if (s_netif == NULL) {
+            // expect mdns has been initialized already
+            s_netif = event->esp_netif;
+            ESP_ERROR_CHECK(mdns_register_netif(s_netif));
+        }
+        esp_ip6_addr_type_t ipv6_type = esp_netif_ip6_get_addr_type(&event->ip6_info.ip);
+        ESP_LOGI(TAG, "Got IPv6 event: Interface \"%s\" address: " IPV6STR ", type: %d", esp_netif_get_desc(event->esp_netif),
+                IPV62STR(event->ip6_info.ip), (int)ipv6_type);
+        if (s_netif) {
+            ESP_LOGI(TAG, "MDNS probing on IPv6 starting");
+            if (mdns_netif_action(s_netif, MDNS_EVENT_ENABLE_IP6) != ESP_OK) {
+                // this is still okay, as the netif might have been deinit in the meantime
+                ESP_LOGW(TAG, "Failed to run mdns action: MDNS_EVENT_ENABLE_IP6");
+            }
+        }
+    } else if (event_base == ETH_EVENT && event_id == ETHERNET_EVENT_CONNECTED) {
+        ESP_LOGI(TAG, "Ethernet connected");
+        ESP_ERROR_CHECK(esp_netif_create_ip6_linklocal(eth_netif));
+    } else if (event_base == ETH_EVENT && event_id == ETHERNET_EVENT_DISCONNECTED) {
         ESP_LOGI(TAG, "Ethernet disconnected");
         if (s_netif) {
-            ESP_LOGW(TAG, "MDNS_EVENT_DISABLE_IP4");
-            ESP_ERROR_CHECK(mdns_netif_action(s_netif, MDNS_EVENT_DISABLE_IP4 ));
+            ESP_LOGW(TAG, "MDNS_EVENT_DISABLE_IP4 and IP4");
+            ESP_ERROR_CHECK(mdns_netif_action(s_netif, MDNS_EVENT_DISABLE_IP4 | MDNS_EVENT_DISABLE_IP6 ));
             s_netif = NULL;
         }
     }
@@ -200,13 +213,15 @@ void eth_init(void)
     // Use ESP_NETIF_DEFAULT_ETH when just one Ethernet interface is used and you don't need to modify
     // default esp-netif configuration parameters.
     esp_netif_config_t cfg = ESP_NETIF_DEFAULT_ETH();
-    esp_netif_t *eth_netif = esp_netif_new(&cfg);
+    eth_netif = esp_netif_new(&cfg);
     // Attach Ethernet driver to TCP/IP stack
     ESP_ERROR_CHECK(esp_netif_attach(eth_netif, esp_eth_new_netif_glue(eth_handles[0])));
 
     // Register user defined event handers
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_ETH_GOT_IP, event_handler, NULL)); // -> to start mDNS probing
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_GOT_IP6, event_handler, NULL)); // -> to start mDNS probing
     ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ETHERNET_EVENT_DISCONNECTED, event_handler, NULL)); // -> to notify mDNS to stop
+    ESP_ERROR_CHECK(esp_event_handler_register(ETH_EVENT, ETHERNET_EVENT_CONNECTED, event_handler, NULL)); // -> to notify mDNS to stop
 
     // Start Ethernet driver state machine
     ESP_ERROR_CHECK(esp_eth_start(eth_handles[0]));
