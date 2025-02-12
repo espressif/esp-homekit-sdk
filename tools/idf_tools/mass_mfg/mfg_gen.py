@@ -18,6 +18,7 @@
 from __future__ import print_function
 from builtins import range
 from future.moves.itertools import zip_longest
+from io import open
 import sys
 import os
 import csv
@@ -25,7 +26,11 @@ import argparse
 import distutils.dir_util
 
 try:
-    sys.path.insert(0, os.getenv('IDF_PATH') + "/components/nvs_flash/nvs_partition_generator/")
+    sys.path.insert(
+        0,
+        os.getenv(
+            'IDF_PATH') + "/components/nvs_flash/nvs_partition_generator/"
+    )
     import nvs_partition_gen
 except Exception as e:
     print(e)
@@ -45,8 +50,11 @@ def verify_values_exist(input_values_file, keys_in_values_file):
     for values_data in values_file_reader:
         line_no += 1
         if len(values_data) != key_count_in_values_file:
-            raise SystemExit("\nOops...Number of values is not equal to number of keys in file: %s at line No:%s\n"
-                             % (str(input_values_file), str(line_no)))
+            raise SystemExit('\nOops...Number of values is not equal '
+                             'to number of keys in file: {0} '
+                             'at line No:{1}\n'.format(
+                                    input_values_file,
+                                    line_no))
 
 
 def verify_keys_exist(values_file_keys, input_config_file):
@@ -54,9 +62,9 @@ def verify_keys_exist(values_file_keys, input_config_file):
     """
     keys_missing = []
 
-    config_file = open(input_config_file,'r')
+    config_file = open(input_config_file, 'r')
     config_file_reader = csv.reader(config_file, delimiter=',')
-    for line_no, config_data in enumerate(config_file_reader,1):
+    for line_no, config_data in enumerate(config_file_reader, 1):
         if 'namespace' not in config_data:
             if values_file_keys:
                 if config_data[0] == values_file_keys[0]:
@@ -79,21 +87,28 @@ def verify_keys_exist(values_file_keys, input_config_file):
 def verify_datatype_encoding(input_config_file):
     """ Verify datatype and encodings from config file is valid
     """
-    valid_encodings = ["string", "binary", "hex2bin","u8", "i8", "u16", "u32", "i32","base64"]
-    valid_datatypes = ["file","data","namespace"]
+    valid_encodings = [
+        "string", "binary", "hex2bin",
+        "u8", "i8", "u16", "u32",
+        "i32", "base64"]
+    valid_datatypes = ["file", "data", "namespace"]
     line_no = 0
 
-    config_file = open(input_config_file,'r')
+    config_file = open(input_config_file, 'r')
     config_file_reader = csv.reader(config_file, delimiter=',')
     for config_data in config_file_reader:
         line_no += 1
         if config_data[1] not in valid_datatypes:
-            raise SystemExit("Oops...config file: %s has invalid datatype at line no:%s\n`"
-                             % (str(input_config_file), str(line_no)))
+            raise SystemExit('Oops...config file: {0} has invalid '
+                             'datatype at line no:{1}\n`'.format(
+                                 input_config_file,
+                                 line_no))
         if 'namespace' not in config_data:
             if config_data[2] not in valid_encodings:
-                raise SystemExit("Oops...config file: %s has invalid encoding at line no:%s\n`"
-                                 % (str(input_config_file), str(line_no)))
+                raise SystemExit('Oops...config file: {0} has '
+                                 'invalid encoding at line no:{1}\n`'.format(
+                                     input_config_file,
+                                     line_no))
 
 
 def verify_file_data_count(input_config_file, keys_repeat):
@@ -106,12 +121,15 @@ def verify_file_data_count(input_config_file, keys_repeat):
     for line in config_file_reader:
         line_no += 1
         if len(line) != 3 and line[0] not in keys_repeat:
-            raise SystemExit("Oops...data missing in config file at line no:%s <format needed:key,type,encoding>\n"
-                             % str(line_no))
+            raise SystemExit('Oops...data missing in config file at '
+                             'line no:{} '
+                             '<format needed:key,type,encoding>\n'.format(
+                                 line_no))
     config_file.close()
 
 
-def verify_data_in_file(input_config_file, input_values_file, config_file_keys, keys_in_values_file, keys_repeat):
+def verify_data_in_file(input_config_file, input_values_file,
+                        config_file_keys, keys_in_values_file, keys_repeat):
     """ Verify count of data on each line in config file is equal to 3 \
     (as format must be: <key,type and encoding>)
     Verify datatype and encodings from config file is valid
@@ -154,10 +172,11 @@ def add_config_data_per_namespace(input_config_file):
     config_data_to_write = []
     config_data_per_namespace = []
 
-    csv_config_file = open(input_config_file,'r')
+    csv_config_file = open(input_config_file, 'r')
     config_file_reader = csv.reader(csv_config_file, delimiter=',')
 
-    # `config_data_per_namespace` is added to `config_data_to_write` list after reading next namespace
+    # `config_data_per_namespace` is added to `config_data_to_write`
+    # list after reading next namespace
     for config_data in config_file_reader:
         if 'REPEAT' in config_data:
             config_data.remove('REPEAT')
@@ -171,8 +190,10 @@ def add_config_data_per_namespace(input_config_file):
         else:
             config_data_per_namespace.append(config_data)
 
-    # `config_data_per_namespace` is added to `config_data_to_write` list as EOF is reached
-    if (not config_data_to_write) or (config_data_to_write and config_data_per_namespace):
+    # `config_data_per_namespace` is added to
+    # `config_data_to_write` list as EOF is reached
+    if (not config_data_to_write) or \
+            (config_data_to_write and config_data_per_namespace):
         config_data_to_write.append(config_data_per_namespace)
 
     csv_config_file.close()
@@ -203,9 +224,15 @@ def add_data_to_file(config_data_to_write, key_value_pair, output_csv_file):
     header = ['key', 'type', 'encoding', 'value']
     data_to_write = []
 
-    target_csv_file = open(output_csv_file, 'w')
+    if sys.version_info.major < 3:
+        target_csv_file = open(output_csv_file, 'wb')
+    else:
+        target_csv_file = open(output_csv_file, 'w')
 
     output_file_writer = csv.writer(target_csv_file, delimiter=',')
+    if sys.version_info.major < 3:
+        header = [
+            item.encode('utf-8') if item else item for item in header]
     output_file_writer.writerow(header)
 
     for namespace_config_data in config_data_to_write:
@@ -213,6 +240,10 @@ def add_data_to_file(config_data_to_write, key_value_pair, output_csv_file):
             data_to_write = data[:]
             if 'namespace' in data:
                 data_to_write.append('')
+                if sys.version_info.major < 3:
+                    data_to_write = [
+                        item.encode('utf-8') if item else item
+                        for item in data_to_write]
                 output_file_writer.writerow(data_to_write)
             else:
                 key = data[0]
@@ -222,6 +253,10 @@ def add_data_to_file(config_data_to_write, key_value_pair, output_csv_file):
                     value = key_value_pair[0][1]
                     data_to_write.append(value)
                     del key_value_pair[0]
+                    if sys.version_info.major < 3:
+                        data_to_write = [
+                            item.encode('utf-8') if item else item
+                            for item in data_to_write]
                     output_file_writer.writerow(data_to_write)
 
     # Set index to start of file
@@ -243,44 +278,68 @@ def create_dir(filetype, output_dir_path):
 def set_repeat_value(total_keys_repeat, keys, csv_file, target_filename):
     key_val_pair = []
     key_repeated = []
-    with open(csv_file, 'r') as read_from, open(target_filename,'w') as write_to:
-        csv_file_reader = csv.reader(read_from, delimiter=',')
-        headers = next(csv_file_reader)
-        values = next(csv_file_reader)
-        csv_file_writer = csv.writer(write_to, delimiter=',')
-        csv_file_writer.writerow(headers)
-        csv_file_writer.writerow(values)
-        total_keys_values = list(zip_longest(keys, values))
+    read_from = open(csv_file, 'r')
+    if sys.version_info.major < 3:
+        write_to = open(target_filename, 'wb')
+    else:
+        write_to = open(target_filename, 'w')
+    csv_file_reader = csv.reader(read_from, delimiter=',')
+    headers = next(csv_file_reader)
+    if sys.version_info.major < 3:
+        headers = [
+            item.encode('utf-8') if item else item for item in headers]
+    values = next(csv_file_reader)
+    if sys.version_info.major < 3:
+        values = [
+            item.encode('utf-8') if item else item for item in values]
+    csv_file_writer = csv.writer(write_to, delimiter=',')
+    csv_file_writer.writerow(headers)
+    csv_file_writer.writerow(values)
+    total_keys_values = list(zip_longest(keys, values))
 
-        # read new data, add value if key has repeat tag, write to new file
-        for row in csv_file_reader:
-            index = -1
-            key_val_new = list(zip_longest(keys, row))
-            key_val_pair = total_keys_values[:]
-            key_repeated = total_keys_repeat[:]
-            while key_val_new and key_repeated:
-                index = index + 1
-                #  if key has repeat tag, get its corresponding value, write to file
-                if key_val_new[0][0] == key_repeated[0]:
-                    val = key_val_pair[0][1]
-                    row[index] = val
-                    csv_file_writer.writerow(row)
-                    del key_repeated[0]
-                del key_val_new[0]
-                del key_val_pair[0]
+    # read new data, add value if key has repeat tag, write to new file
+    for row in csv_file_reader:
+        index = -1
+        key_val_new = list(zip_longest(keys, row))
+        key_val_pair = total_keys_values[:]
+        key_repeated = total_keys_repeat[:]
+        while key_val_new and key_repeated:
+            index = index + 1
+            #  if key has repeat tag, get its corresponding value,
+            # write to file
+            if key_val_new[0][0] == key_repeated[0]:
+                val = key_val_pair[0][1]
+                row[index] = val
+                if sys.version_info.major < 3:
+                    row = [
+                        item.encode('utf-8') if item else item
+                        for item in row]
+                csv_file_writer.writerow(row)
+                del key_repeated[0]
+            del key_val_new[0]
+            del key_val_pair[0]
+
+    write_to.close()
+    read_from.close()
 
     return target_filename
 
 
-def main(input_config_file=None,input_values_file=None,target_file_name_prefix=None,
-         file_identifier=None,output_dir_path=None,part_size=None,input_version=None,
-         input_is_keygen=None,input_is_encrypt=None,input_is_keyfile=None):
+def main(input_config_file=None, input_values_file=None,
+         target_file_name_prefix=None, file_identifier=None,
+         output_dir_path=None, part_size=None, input_version=None,
+         input_is_keygen=None, input_is_encrypt=None, input_is_keyfile=None):
     try:
-        if all(arg is None for arg in [input_config_file,input_values_file,target_file_name_prefix,
-                                       file_identifier,output_dir_path]):
-            parser = argparse.ArgumentParser(prog='./mfg_gen.py',
-                                             description="Create binary files from input config and values file",
-                                             formatter_class=argparse.RawDescriptionHelpFormatter)
+        if all(arg is None for arg in [
+                input_config_file, input_values_file,
+                target_file_name_prefix, file_identifier,
+                output_dir_path]):
+            parser = argparse.ArgumentParser(
+                        prog='./mfg_gen.py',
+                        description='Create binary files '
+                        'from input config and '
+                        'values file',
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
 
             parser.add_argument('--conf',
                                 dest='config_file',
@@ -298,43 +357,49 @@ def main(input_config_file=None,input_values_file=None,target_file_name_prefix=N
 
             parser.add_argument('--fileid',
                                 dest='fileid',
-                                help='the unique file identifier(any key in values file) \
-                                as each filename suffix (Default: numeric value(1,2,3...)')
+                                help='the unique file identifier'
+                                '(any key in values file)'
+                                'as each filename suffix '
+                                '(Default: numeric value(1,2,3...)')
 
             parser.add_argument('--outdir',
                                 dest='outdir',
                                 default=os.getcwd(),
-                                help='the output directory to store the files created\
-                                (Default: current directory)')
+                                help='the output directory to store the '
+                                'files created '
+                                '(Default: current directory)')
 
             parser.add_argument("--size",
                                 dest='part_size',
-                                help='Size of NVS Partition in bytes (must be multiple of 4096)')
+                                help='Size of NVS Partition in bytes '
+                                '(must be multiple of 4096)')
 
             parser.add_argument("--version",
                                 dest="version",
                                 help='Set version. Default: v2',
-                                choices=['v1','v2'],
+                                choices=['v1', 'v2'],
                                 default='v2',
                                 type=str.lower)
 
             parser.add_argument("--keygen",
                                 dest="keygen",
-                                help='Generate keys for encryption. Default: false',
-                                choices=['true','false'],
+                                help='Generate keys for encryption. '
+                                'Default: false',
+                                choices=['true', 'false'],
                                 default='false',
                                 type=str.lower)
 
             parser.add_argument("--encrypt",
                                 dest="encrypt",
                                 help='Set encryption mode. Default: false',
-                                choices=['true','false'],
+                                choices=['true', 'false'],
                                 default='false',
                                 type=str.lower)
 
             parser.add_argument("--keyfile",
                                 dest="keyfile",
-                                help='File having key for encryption (Applicable only if encryption mode is true)',
+                                help='File having key for encryption '
+                                '(Applicable only if encryption mode is true)',
                                 default=None)
 
             args = parser.parse_args()
@@ -351,31 +416,42 @@ def main(input_config_file=None,input_values_file=None,target_file_name_prefix=N
             input_is_encrypt = args.encrypt
             input_is_keyfile = args.keyfile
             file_identifier = ''
-            print_arg_str = "Invalid.\nTo generate binary --conf, --values, --prefix and --size arguments are mandatory.\
-            \nTo generate encryption keys --keygen argument is mandatory."
-            print_encrypt_arg_str = "Missing parameter. Enter --keygen or --keyfile."
+            print_arg_str = ('Invalid.\nTo generate binary --conf, --values, '
+                             '--prefix and --size arguments are mandatory.'
+                             '\nTo generate encryption keys --keygen '
+                             'argument is mandatory.')
+            print_encrypt_arg_str = ('Missing parameter. '
+                                     'Enter --keygen or --keyfile.')
 
             if args.fileid:
                 file_identifier = args.fileid
 
-            if input_config_file and input_is_encrypt.lower() == 'true' and input_is_keygen.lower() == 'true' and input_is_keyfile:
-                sys.exit('Invalid. Cannot provide both --keygen and --keyfile argument together.')
+            if input_config_file and input_is_encrypt.lower() == 'true' and \
+                    input_is_keygen.lower() == 'true' and input_is_keyfile:
+                sys.exit('Invalid. Cannot provide both --keygen and --keyfile '
+                         'argument together.')
 
-            nvs_partition_gen.check_input_args(input_config_file, input_values_file, part_size, input_is_keygen,
-                                               input_is_encrypt, input_is_keyfile, input_version, print_arg_str,
-                                               print_encrypt_arg_str, output_dir_path)
+            nvs_partition_gen.check_input_args(
+                input_config_file, input_values_file, part_size,
+                input_is_keygen, input_is_encrypt, input_is_keyfile,
+                input_version, print_arg_str, print_encrypt_arg_str,
+                output_dir_path)
 
             if not input_config_file and input_is_keygen:
                 if input_is_encrypt == 'true':
-                    sys.exit("Invalid.\nOnly --keyfile and --outdir arguments allowed.\n")
+                    sys.exit('Invalid.\nOnly --keyfile and --outdir '
+                             'arguments allowed.\n')
                 # Generate Key Only
-                nvs_partition_gen.nvs_part_gen(input_filename=input_config_file, output_filename=input_values_file,
-                                               input_part_size=part_size, is_key_gen=input_is_keygen,
-                                               encrypt_mode=input_is_encrypt, key_file=input_is_keyfile,
-                                               version_no=input_version, output_dir=output_dir_path)
+                nvs_partition_gen.nvs_part_gen(
+                    input_filename=input_config_file,
+                    output_filename=input_values_file,
+                    input_part_size=part_size, is_key_gen=input_is_keygen,
+                    encrypt_mode=input_is_encrypt, key_file=input_is_keyfile,
+                    version_no=input_version, output_dir=output_dir_path)
                 exit(0)
 
-            if not (input_config_file and input_values_file and target_file_name_prefix and part_size):
+            if not (input_config_file and input_values_file and
+                    target_file_name_prefix and part_size):
                 sys.exit(print_arg_str)
 
         keys_in_values_file = []
@@ -393,28 +469,32 @@ def main(input_config_file=None,input_values_file=None,target_file_name_prefix=N
 
         # Verify config file is not empty
         if os.stat(input_config_file).st_size == 0:
-            raise SystemExit("Oops...config file: %s is empty." % input_config_file)
+            raise SystemExit('Oops...config file: {} is empty.'.format(
+                input_config_file))
 
         # Verify values file is not empty
         if os.stat(input_values_file).st_size == 0:
-            raise SystemExit("Oops...values file: %s is empty." % input_values_file)
+            raise SystemExit('Oops...values file: {} is empty.'.format(
+                input_values_file))
 
         # Verify config file does not have empty lines
-        csv_config_file = open(input_config_file,'r')
+        csv_config_file = open(input_config_file, 'r')
         try:
             config_file_reader = csv.reader(csv_config_file, delimiter=',')
             for config_data in config_file_reader:
                 for data in config_data:
                     empty_line = data.strip()
-                    if empty_line is '':
+                    if empty_line == '':
                         is_empty_line = True
                     else:
                         is_empty_line = False
                         break
                 if is_empty_line:
-                    raise SystemExit("Oops...config file: %s cannot have empty lines. " % input_config_file)
+                    raise SystemExit('Oops...config file: {} cannot have '
+                                     'empty lines. '.format(input_config_file))
                 if not config_data:
-                    raise SystemExit("Oops...config file: %s cannot have empty lines." % input_config_file)
+                    raise SystemExit('Oops...config file: {} cannot have '
+                                     'empty lines.'.format(input_config_file))
 
             csv_config_file.seek(0)
 
@@ -439,15 +519,17 @@ def main(input_config_file=None,input_values_file=None,target_file_name_prefix=N
             for values_data in values_file_reader:
                 for data in values_data:
                     empty_line = data.strip()
-                    if empty_line is '':
+                    if empty_line == '':
                         is_empty_line = True
                     else:
                         is_empty_line = False
                         break
                 if is_empty_line:
-                    raise SystemExit("Oops...values file: %s cannot have empty lines." % input_values_file)
+                    raise SystemExit('Oops...values file: {} cannot have '
+                                     'empty lines.'.format(input_values_file))
                 if not values_data:
-                    raise SystemExit("Oops...values file: %s cannot have empty lines." % input_values_file)
+                    raise SystemExit('Oops...values file: {} cannot have '
+                                     'empty lines.'.format(input_values_file))
 
             csv_values_file.seek(0)
 
@@ -464,11 +546,14 @@ def main(input_config_file=None,input_values_file=None,target_file_name_prefix=N
         # Verify file identifier exists in values file
         if file_identifier:
             if file_identifier not in keys_in_values_file:
-                raise SystemExit('Oops...target_file_identifier: %s does not exist in values file.\n' % file_identifier)
+                raise SystemExit('Oops...target_file_identifier: {} '
+                                 'does not exist in values file.\n'.format(
+                                     file_identifier))
 
         # Verify data in the input_config_file and input_values_file
-        verify_data_in_file(input_config_file, input_values_file, keys_in_config_file,
-                            keys_in_values_file, keys_repeat)
+        verify_data_in_file(input_config_file, input_values_file,
+                            keys_in_config_file, keys_in_values_file,
+                            keys_repeat)
 
         # Add config data per namespace to `config_data_to_write` list
         config_data_to_write = add_config_data_per_namespace(input_config_file)
@@ -481,7 +566,9 @@ def main(input_config_file=None,input_values_file=None,target_file_name_prefix=N
             filename, file_ext = os.path.splitext(input_values_file)
             target_filename = filename + "_created" + file_ext
             if keys_repeat:
-                target_values_file = set_repeat_value(keys_repeat, keys, input_values_file, target_filename)
+                target_values_file = set_repeat_value(
+                    keys_repeat, keys,
+                    input_values_file, target_filename)
             else:
                 target_values_file = input_values_file
 
@@ -490,43 +577,65 @@ def main(input_config_file=None,input_values_file=None,target_file_name_prefix=N
             values_file_reader = csv.reader(csv_values_file, delimiter=',')
             next(values_file_reader)
             for values_data_line in values_file_reader:
-                key_value_data = list(zip_longest(keys_in_values_file,values_data_line))
+                key_value_data = list(zip_longest(
+                    keys_in_values_file,
+                    values_data_line))
 
                 # Get file identifier value from values file
-                file_identifier_value = get_fileid_val(file_identifier, keys_in_config_file,
-                                                       keys_in_values_file, values_data_line, key_value_data, file_identifier_value)
+                file_identifier_value = get_fileid_val(
+                    file_identifier, keys_in_config_file,
+                    keys_in_values_file, values_data_line,
+                    key_value_data, file_identifier_value)
 
                 key_value_pair = key_value_data[:]
 
-                # Create new directory(if doesn't exist) to store csv file generated
+                # Create new directory(if doesn't exist)
+                # to store csv file generated
                 output_target_dir = create_dir("csv/", output_dir_path)
 
                 # Verify if output csv file does not exist
-                csv_filename = target_file_name_prefix + "-" + file_identifier_value + ".csv"
+                csv_filename = '{0}-{1}.csv'.format(
+                    target_file_name_prefix,
+                    file_identifier_value)
                 csv_file_list.append(csv_filename)
                 output_csv_file = output_target_dir + csv_filename
                 if os.path.isfile(output_csv_file):
-                    raise SystemExit("Target csv file: %s already exists.`" % output_csv_file)
+                    raise SystemExit('Target csv file: {} already '
+                                     'exists.`'.format(output_csv_file))
 
                 # Add values corresponding to each key to csv target file
-                add_data_to_file(config_data_to_write, key_value_pair, output_csv_file)
+                add_data_to_file(
+                    config_data_to_write,
+                    key_value_pair,
+                    output_csv_file)
 
-                # Create new directory(if doesn't exist) to store bin file generated
+                # Create new directory(if doesn't exist)
+                # to store bin file generated
                 output_target_dir = create_dir("bin/", output_dir_path)
 
                 # Verify if output bin file does not exist
-                output_file_prefix = target_file_name_prefix + "-" + file_identifier_value
-                output_bin_file = output_target_dir + output_file_prefix + ".bin"
+                output_file_prefix = '{0}-{1}'.format(
+                    target_file_name_prefix,
+                    file_identifier_value)
+                output_bin_file = '{0}{1}.bin'.format(
+                    output_target_dir, output_file_prefix)
                 if os.path.isfile(output_bin_file):
-                    raise SystemExit("Target csv file: %s already exists.`" % output_bin_file)
+                    raise SystemExit('Target csv file: {} already '
+                                     'exists.'.format(output_bin_file))
 
                 # Create output csv and bin file
                 if input_is_keygen.lower() == 'true' and input_is_keyfile:
                     input_is_keyfile = os.path.basename(input_is_keyfile)
-                nvs_partition_gen.nvs_part_gen(input_filename=output_csv_file, output_filename=output_bin_file,
-                                               input_part_size=part_size, is_key_gen=input_is_keygen,
-                                               encrypt_mode=input_is_encrypt, key_file=input_is_keyfile,
-                                               version_no=input_version, encr_key_prefix=output_file_prefix, output_dir=output_dir_path)
+                nvs_partition_gen.nvs_part_gen(
+                    input_filename=output_csv_file,
+                    output_filename=output_bin_file,
+                    input_part_size=part_size,
+                    is_key_gen=input_is_keygen,
+                    encrypt_mode=input_is_encrypt,
+                    key_file=input_is_keyfile,
+                    version_no=input_version,
+                    encr_key_prefix=output_file_prefix,
+                    output_dir=output_dir_path)
                 print("CSV Generated: ", str(output_csv_file))
 
                 files_created = True
