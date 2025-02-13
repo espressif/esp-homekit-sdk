@@ -15,11 +15,12 @@ One important consideration here is how to create such individual images for lar
 	-	Linux / MacOS / Windows (standard distributions)
 
 * The following packages are needed for using this utility:
-	-	'srp' package.
-		-	Command to install: ``pip install srp``
-	-	Python version: 2.7 (minimum) is required.
+	-	Python version: 2.7 or >=3.5 (minimum) is required.
 		-	Link to install python: <https://www.python.org/downloads/>
-
+	-	'srp' package.
+		-	Command to install: ``pip install srp`` (If using python3.x, use pip3)
+  - 'future' package
+    - Command to install: ``pip install future`` (If using python3.x, use pip3)
 
 **Note::** Make sure the python path is set in the PATH environment variable before using this utility.
 
@@ -32,7 +33,8 @@ The HomeKit Manufacturing Utility is a python script. If run with the -h option,
 ```
 ./hk_mfg_gen.py [-h] [--conf CONFIG_FILE] [--values VALUES_FILE]
                      [--prefix PREFIX] [--fileid FILEID] [--outdir OUTDIR]
-                     [--cid CID] [--count COUNT] [--size PART_SIZE]
+                     [--cid CID] [--count COUNT]
+                     [--product_data PRODUCT_DATA] [--size PART_SIZE]
                      [--version {v1,v2}] [--keygen {true,false}]
                      [--encrypt {true,false}] [--keyfile KEYFILE]
 
@@ -52,6 +54,8 @@ optional arguments:
   --cid CID             the accessory category identifier
   --count COUNT         the number of accessories to create HomeKit data for,
                         applicable only if --values is not given
+  --product_data PRODUCT_DATA
+                        the product data used in generating setup payload
   --size PART_SIZE      Size of NVS Partition in bytes (must be multiple of
                         4096)
   --version {v1,v2}     Set version. Default: v2
@@ -115,6 +119,12 @@ The version used to create the images is also displayed. For further details ref
 
 The configuration file \(homekit\_config\_10-30_22-58.csv\) generated gives information of all the NVS variables and their data types. The various values generated are stored in the values file (homekit\_values\_10-30\_22-58.csv). The values file can be considered as a master database as it has all the information for all the images, including metadata like the setup\_code used to generate setup\_salt and setup\_verifier, the value of setup\_id and even the setup\_payload which can be used to generate the QR code for accessory setup. Of these, only setup\_id, setup\_salt and setup\_verifier are actually used to generate the images. This logic is decided by the configuration file mentioned above, as it has entries only for these.
 
+*You can also generate the product data which is used in creating the setup payload, by providing the --product_data argument.  
+The product data generated is also added in the values file as a metadata for the setup payload.*
+You can run it as shown here:
+  ```
+    ./hk_mfg_gen.py --prefix Fan --count 5 --outdir images --cid 3 --size 0x3000 --product_data 1122334455667788
+  ```
 
 ### HomeKit + Custom Data
 If some custom data is required, a user will have to write 2 files:
@@ -201,7 +211,6 @@ The Manufacturing utlity will add HomeKit related data (setup id, salt, verifier
 ```
 
 For the input values given in the examples above, files Fan-101.bin and Fan-102.bin will be generated.
-
 
 *If you want to use encryption mode you can run the utility as given below:*
 

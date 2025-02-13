@@ -101,7 +101,7 @@ err:
 /* Services Emulation Block */
 static hap_serv_t *hap_fan_create()
 {
-    hap_serv_t *hs = hap_serv_fan_create(false);
+    hap_serv_t *hs = hap_serv_fan_v2_create(1);
     hap_serv_add_char(hs, hap_char_rotation_direction_create(0));
     return hs;
 }

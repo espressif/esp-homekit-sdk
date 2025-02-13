@@ -109,18 +109,18 @@ static int accessory_identify(hap_acc_t *ha)
     return HAP_SUCCESS;
 }
 
-/* A dummy callback for handling a write on the "On" characteristic of Fan.
- * In an actual accessory, this should control the hardware
+/* A dummy callback for handling a write on the "Active" characteristic of Fan.
+ * In an actual accessory, this should control the hardware.
  */
-static int fan_on(bool value)
+static int fan_active(uint8_t value)
 {
-    ESP_LOGI(TAG, "Received Write. Fan %s", value ? "On" : "Off");
+    ESP_LOGI(TAG, "Received Write. Fan %s", value ? "Active" : "Inactive");
     /* TODO: Control Actual Hardware */
     return 0;
 }
 
-/* A dummy callback for handling a write on the "On" characteristic of Fan.
- * In an actual accessory, this should control the hardware
+/* A dummy callback for handling a write on Fan service.
+ * In an actual accessory, this should also control the hardware.
  */
 static int fan_write(hap_write_data_t write_data[], int count,
         void *serv_priv, void *write_priv)
@@ -130,8 +130,8 @@ static int fan_write(hap_write_data_t write_data[], int count,
     hap_write_data_t *write;
     for (i = 0; i < count; i++) {
         write = &write_data[i];
-        if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-            fan_on(write->val.b);
+        if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ACTIVE)) {
+            fan_active(write->val.b);
             hap_char_update_val(write->hc, &(write->val));
             *(write->status) = HAP_STATUS_SUCCESS;
         } else {
@@ -197,7 +197,7 @@ static void bridge_thread_entry(void *p)
         accessory = hap_acc_create(&bridge_cfg);
 
         /* Create the Fan Service. Include the "name" since this is a user visible service  */
-        service = hap_serv_fan_create(false);
+        service = hap_serv_fan_v2_create(1);
         hap_serv_add_char(service, hap_char_name_create(accessory_name));
 
         /* Set the Accessory name as the Private data for the service,
