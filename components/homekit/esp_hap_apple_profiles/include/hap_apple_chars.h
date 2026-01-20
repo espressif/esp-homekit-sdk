@@ -327,7 +327,7 @@ hap_char_t *hap_char_model_create(char *model);
  * This API creates the Motion Detected characteristic object with other metadata
  * (format, constraints, permissions, etc.) set as per the HAP Specs
  *
- * @param[in] motion_detected   Value of Motion Detected Charateristic
+ * @param[in] motion_detected   Value of Motion Detected Characteristic
  *
  * @return Pointer to the characteristic object on success
  * @return NULL on failure
@@ -543,7 +543,7 @@ hap_char_t *hap_char_battery_level_create(uint8_t battery_level);
  * This API creates the Current Position characteristic object with other metadata
  * (format, constraints, permissions, etc.) set as per the HAP Specs
  *
- * @param[in] curr_pos  Initial value of Cuurent Position characteristic
+ * @param[in] curr_pos  Initial value of Current Position characteristic
  *
  * @return Pointer to the characteristic object on success
  * @return NULL on failure

@@ -54,7 +54,7 @@ int hap_controllers_init()
         }
     }
     if (acc_paired) {
-        ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Accessory is Paired with atleast one controller");
+        ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Accessory is Paired with at least one controller");
     } else {
         ESP_MFI_DEBUG(ESP_MFI_DEBUG_INFO, "Accessory is not Paired with any controller");
         hap_start_pairing_mode_timer();

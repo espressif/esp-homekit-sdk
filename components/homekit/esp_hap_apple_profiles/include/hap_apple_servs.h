@@ -357,7 +357,7 @@ hap_serv_t *hap_serv_stateless_programmable_switch_create(uint8_t programmable_s
  * This API will create the Temperature Sensor Service with the mandatory
  * characteristics as per the HAP Specs.
  *
- * @param[in]  curr_temp  Initial value of Current Temprature characteristic
+ * @param[in]  curr_temp  Initial value of Current Temperature characteristic
  *
  * @return Pointer to the service object on success
  * @return NULL on failure

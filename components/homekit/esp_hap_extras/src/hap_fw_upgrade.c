@@ -89,7 +89,7 @@ static void fw_upgrade_thread_entry(void *data)
         hap_reboot_accessory();
     }
     /* Updating the value of the variable here, so that the next upgrade attempt (if any) can start.
-     * However, no need to update the value, as we want to retain the lates status for 
+     * However, no need to update the value, as we want to retain the latest status for 
      * controllers to read.
      */
     fw_upgrade_status = FW_UPG_STATUS_IDLE;

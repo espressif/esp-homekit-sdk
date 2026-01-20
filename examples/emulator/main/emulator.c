@@ -62,7 +62,7 @@ static int hex_compare(unsigned char *buf, int buf_len)
     return -1;
 }
 
-/* Char: Target Door State with tw(Timed Write) & aa(Addtional Authorization) */
+/* Char: Target Door State with tw(Timed Write) & aa(Additional Authorization) */
 static hap_char_t *hap_char_target_door_state_create_with_tw_aa(uint8_t targ_door_state)
 {
     hap_char_t *hc = hap_char_uint8_create(HAP_CHAR_UUID_TARGET_DOOR_STATE,

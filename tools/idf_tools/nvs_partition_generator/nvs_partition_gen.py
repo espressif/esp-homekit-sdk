@@ -646,7 +646,7 @@ class InputError(RuntimeError):
 class InsufficientSizeError(RuntimeError):
     """
     Represents error when NVS Partition size given is insufficient
-    to accomodate the data in the given csv file
+    to accommodate the data in the given csv file
     """
     def __init__(self, e):
         super(InsufficientSizeError, self).__init__(e)

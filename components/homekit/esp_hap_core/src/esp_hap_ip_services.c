@@ -869,7 +869,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 	 * When i == char_cnt, it will mean that all elements in the array
 	 * have been looped through.
 	 * So, last iteration will invoke the write callback for the last
-	 * set of characteritics.
+	 * set of characteristics.
 	 */
 	for (i = 0; i <= char_cnt; i++) {
         /* Explicitly checking for i < char_cnt because this loop runs till
@@ -1071,7 +1071,7 @@ static int hap_http_get_characteristics(httpd_req_t *req)
         goto get_char_return;
     }
     httpd_req_get_url_query_str(req, url_query_str, url_query_str_len + 1);
-	/* Check for all the optional URL query paramaters */
+	/* Check for all the optional URL query parameters */
 	bool meta = hap_get_bool_url_param(url_query_str, "meta");
 	bool perms = hap_get_bool_url_param(url_query_str, "perms");
 	bool type = hap_get_bool_url_param(url_query_str, "type");
@@ -1189,7 +1189,7 @@ static int hap_http_get_characteristics(httpd_req_t *req)
 	 * When i == char_cnt, it will mean that all elements in the array
 	 * have been looped through.
 	 * So, last iteration will invoke the read callback for the last
-	 * set of characteritics.
+	 * set of characteristics.
 	 */
 	for (i = 0; i <= char_cnt; i++) {
 		if ((i < char_cnt) && ((hap_serv_t *)hs == hap_char_get_parent(read_arr[i].hc)))

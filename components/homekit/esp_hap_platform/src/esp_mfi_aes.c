@@ -70,7 +70,7 @@ esp_mfi_aes_ctr_t esp_mfi_aes_ctr_new(void)
  *        innonce AES nonce
  *
  * @return the result
- *      0 : sucessful
+ *      0 : successful
  *      others : failed
  */
 int esp_mfi_aes_ctr_init(esp_mfi_aes_ctr_t incontext, const uint8_t inkey[MFI_AES_CTR_SIZE], const uint8_t innonce[MFI_AES_CTR_SIZE])
@@ -97,7 +97,7 @@ int esp_mfi_aes_ctr_init(esp_mfi_aes_ctr_t incontext, const uint8_t inkey[MFI_AE
  *        indst the data pint of output
  *
  * @return the result
- *      0 : sucessful
+ *      0 : successful
  *      others : failed
  */
 int esp_mfi_aes_ctr_update(esp_mfi_aes_ctr_t incontext, const void *insrc, uint16_t insrclen, void *indst)
@@ -130,7 +130,7 @@ int esp_mfi_aes_ctr_update(esp_mfi_aes_ctr_t incontext, const void *insrc, uint1
 }
 
 /**
- * @bref Destory AES context point
+ * @bref Destroy AES context point
  *
  * @param incontext AES context point
  *

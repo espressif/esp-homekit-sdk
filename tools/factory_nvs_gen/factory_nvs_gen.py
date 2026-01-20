@@ -49,7 +49,7 @@ def main():
         factory_nvs_part_gen_group.add_argument('setup_code',\
         help='the input setup code without hyphens Eg.: 11122333 ')
         factory_nvs_part_gen_group.add_argument('setup_id',\
-        help='the input setup identifer Eg.: ES32')
+        help='the input setup identifier Eg.: ES32')
         factory_nvs_part_gen_group.add_argument('--infile',dest='infile',\
         help='the input csv file with extension(full path) to add HomeKit data generated to this file Eg.: fan_data.csv')
         factory_nvs_part_gen_group.add_argument('outfile',\
