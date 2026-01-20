@@ -135,7 +135,7 @@ int USHAFinalBits(USHAContext *context,
  * Description:
  *   This function will return the message digest of the appropriate
  *   bit size, as returned by USHAHashSizeBits(whichSHA) for the
- *   'whichSHA' value used in the preceeding call to USHAReset,
+ *   'whichSHA' value used in the preceding call to USHAReset,
  *   into the Message_Digest array provided by the caller.
  *
  * Parameters:

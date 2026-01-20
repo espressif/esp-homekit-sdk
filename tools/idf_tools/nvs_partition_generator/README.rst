@@ -61,7 +61,7 @@ If older format is intended to be used, the utility provides an option to disabl
 
 Encryption Support
 -------------------
-This utility allows you to create an enrypted binary file also. Encryption used is AES-XTS encryption. Refer to :ref:`nvs_encryption` for more details.
+This utility allows you to create an encrypted binary file also. Encryption used is AES-XTS encryption. Refer to :ref:`nvs_encryption` for more details.
 
 Running the utility
 -------------------

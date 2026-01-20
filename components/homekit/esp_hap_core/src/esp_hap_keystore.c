@@ -41,7 +41,7 @@ int hap_keystore_init()
 		ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Error (%d) NVS init failed", err);
         return HAP_FAIL;
     }
-    /* Not cheking the return value, as this partition may be absent */
+    /* Not checking the return value, as this partition may be absent */
     hap_platform_factory_nvs_partition = hap_platform_keystore_get_factory_nvs_partition_name();
     hap_platform_keystore_init_partition(hap_platform_factory_nvs_partition, true);
 

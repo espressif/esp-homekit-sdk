@@ -85,7 +85,7 @@ static void outlet_in_use_key_init(uint32_t key_gpio_pin)
 }
 
 /**
- * Initialize the Smart Outlet Hardware.Here, we just enebale the Outlet-In-Use detection.
+ * Initialize the Smart Outlet Hardware.Here, we just enable the Outlet-In-Use detection.
  */
 void smart_outlet_hardware_init(gpio_num_t gpio_num)
 {

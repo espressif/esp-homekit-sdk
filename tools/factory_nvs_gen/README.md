@@ -33,7 +33,7 @@ optional arguments:
 
 To generate Factory NVS partition:
   setup_code            the input setup code without hyphens Eg.: 11122333
-  setup_id              the input setup identifer Eg.: ES32
+  setup_id              the input setup identifier Eg.: ES32
   --infile INFILE       the input csv file with extension(full path) to add
                         HomeKit data generated to this file Eg.: fan_data.csv
   outfile               the output csv and bin filename without extension Eg.:

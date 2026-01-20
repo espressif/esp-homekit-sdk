@@ -198,7 +198,7 @@ $ ./hk_mfg_gen.py --conf sample_config.csv --values sample_values.csv --prefix F
 
 **Note::** To generate images with HomeKit + Custom data --conf, --values, --prefix --cid, and --size arguments are mandatory. 
 
-The Manufacturing utlity will add HomeKit related data (setup id, salt, verifier, etc.) to the configuration and master values file and create the individual binaries.
+The Manufacturing utility will add HomeKit related data (setup id, salt, verifier, etc.) to the configuration and master values file and create the individual binaries.
 
 --
 

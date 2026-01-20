@@ -300,7 +300,7 @@ void hap_set_debug_level(hap_debug_level_t level);
  */
 const char *hap_get_version();
 
-/** Unique Paramaters for HomeKit */
+/** Unique Parameters for HomeKit */
 typedef enum {
     /** Nothing unique.
      * Application code should ensure uniqueness of name and ssid.
@@ -312,7 +312,7 @@ typedef enum {
     UNIQUE_SSID,
     /** Unique Name.
      * Name will be changed by adding 3 bytes of MAC to original name.
-     * Thi swill automatically make the SSID unique as the accessory name will be used as SSID.
+     * This swill automatically make the SSID unique as the accessory name will be used as SSID.
      */
     UNIQUE_NAME,
 } hap_unique_param_t;
@@ -329,7 +329,7 @@ typedef struct {
      * for bridges.
      */
     uint8_t max_event_notif_chars;
-    /** Indicates what paramaters will be made unique by the HAP Core */
+    /** Indicates what parameters will be made unique by the HAP Core */
     hap_unique_param_t unique_param;
     /** Timeout (in seconds) after which a socket data receive call will return for a pair verified
      * socket, in case the call blocks. This has been added to avoid the webserver getting stalled on a read,
@@ -347,7 +347,7 @@ typedef struct {
     size_t sw_token_max_len;
     /** By default, config number (c#) incremenents on addition/removal of every bridged accessory after
      * hap_start(). Setting this flag to true will disable this. Use hap_update_config_number()
-     * to increment c#. Note thar c# will still increment on a firmware upgrade though.
+     * to increment c#. Note that c# will still increment on a firmware upgrade though.
      */
     bool disable_config_num_update;
 } hap_cfg_t;
@@ -1036,7 +1036,7 @@ int hap_acc_add_serv(hap_acc_t *ha, hap_serv_t *hs);
  * This should be called within service read/write callbacks to update the
  * value of characteristic maintained by the HAP Core. This can also be called
  * from some other thread, for accessories like sensors that periodically
- * monitor some paramters.
+ * monitor some parameters.
  *
  * @param[in] hc HAP characteristic object handle
  * @param[in] val Pointer to new value
@@ -1055,7 +1055,7 @@ int hap_char_update_val(hap_char_t *hc, hap_val_t *val);
  */
 const hap_val_t *hap_char_get_val(hap_char_t *hc);
 
-/** Authorization Data received in a write reqest
+/** Authorization Data received in a write request
  */
 typedef struct {
     /** Pointer to the data. Will be NULL if no auth data was present */
@@ -1191,7 +1191,7 @@ void hap_serv_set_read_cb(hap_serv_t *hs, hap_serv_read_t read);
  * @note This should be used only under special circumstances for cases like
  * bridges, wherein fetching individual values from bridged accessories could
  * be time consuming. If this is used, the callback registered using
- * @ref hap_serv_set_read_cb() will be overriden.
+ * @ref hap_serv_set_read_cb() will be overridden.
  *
  * @param[in] hs HAP Service Object Handle
  * @param[in] read Callback of type \ref hap_serv_bulk_read_t
@@ -1469,7 +1469,7 @@ int hap_enable_mfi_auth(hap_mfi_auth_type_t auth_type);
  *
  * @note Software Authentication is not recommended for new accessories. It should be used only if HomeKit
  * functionality needs to be enabled on accessories which are already in field, or if an existing hardware
- * design needs to be re-used for cost or other considerations. For any other use cases, please get in touch
+ * design needs to be reused for cost or other considerations. For any other use cases, please get in touch
  * with your Apple contact.
  *
  * @return HAP_SUCCESS on success
@@ -1556,7 +1556,7 @@ void hap_register_event_handler(hap_event_handler_t handler);
 /** Get Paired controller count
  *
  * This API can be used to get a count of number of paired controllers.
- * Thi can be used only after hap_init().
+ * This can be used only after hap_init().
  *
  * @return Number of paired controllers
  */

@@ -132,7 +132,7 @@ static void hap_add_secure_session(hap_secure_session_t *session)
              * event can be sent later for a state change, when no controller
              * is connected.
              * HAP Spec R15 say that the state number should change only once
-             * between accessory disconneted (from all controllers) to connected
+             * between accessory disconnected (from all controllers) to connected
              * state.
              */
             hap_priv.disconnected_event_sent = false;

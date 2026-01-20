@@ -1,8 +1,10 @@
 stages:
+  - check
   - build
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
+  ESP_DOCS_ENV_IMAGE: python:3.12-alpine
 
 .build_template:
   stage: build
@@ -76,3 +78,6 @@ build_idf_v5.2:
 build_idf_v5.3:
   extends: .build_template
   image: espressif/idf:release-v5.3
+
+include:
+  - '.gitlab/ci/pre_commit.yml'

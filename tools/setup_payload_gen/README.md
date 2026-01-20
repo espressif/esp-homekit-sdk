@@ -35,6 +35,6 @@ Setup Payload: X-HM://0E8NKO6YU7OSX0CZ067T6WCYA44AY9S
 
 ## Generating QR
 Any standard QR code generator can be used for generating the QR code for
-HomeKit Acessory Setup using the Payload generated above.
+HomeKit Accessory Setup using the Payload generated above.
 
 Eg. [http://www.qr-code-generator.com/](http://www.qr-code-generator.com/)

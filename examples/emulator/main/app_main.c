@@ -307,7 +307,7 @@ static void emulator_thread_entry(void *p)
             hap_char_update_val(hap_serv_get_char_by_uuid(hs, HAP_CHAR_UUID_ON), &val);    
     }
     
-    /* Registering BCT handlers as this is a test accesory */
+    /* Registering BCT handlers as this is a test accessory */
     hap_bct_register_http_handlers();
 
     emulator_show_profiles();
