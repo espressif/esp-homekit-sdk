@@ -38,6 +38,8 @@
 #include "esp32c2/rom/ets_sys.h"
 #elif CONFIG_IDF_TARGET_ESP32C6
 #include "esp32c6/rom/ets_sys.h"
+#elif CONFIG_IDF_TARGET_ESP32C5
+#include "esp32c5/rom/ets_sys.h"
 #else
 #error "please include ets_sys.h"
 #endif
