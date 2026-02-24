@@ -1,0 +1,3 @@
+# perform the size optimized builds for C6 to avoid app size overflow
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+CONFIG_ESP_ROM_HAS_NEWLIB_NANO_FORMAT=y

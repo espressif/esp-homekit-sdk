@@ -14,7 +14,7 @@ variables:
 
   variables:
     EXAMPLES: "bridge data_tlv8 emulator fan lightbulb smart_outlet"
-    EXAMPLE_TARGETS: "esp32 esp32c3 esp32s3"
+    EXAMPLE_TARGETS: "esp32 esp32c3 esp32s2 esp32s3 esp32c2 esp32c6"
 
   artifacts:
     paths:
@@ -53,23 +53,9 @@ variables:
     - echo Generating zip file for binaries generated
     - tar -zcvf esp-homekit-sdk-bins-${CI_JOB_ID}.zip esp-homekit-sdk-bins-${CI_JOB_ID}/
 
-build_idf_v4.4:
-  extends: .build_template
-  image: espressif/idf:release-v4.4
-  variables:
-    EXAMPLE_TARGETS: "esp32 esp32s2 esp32c3 esp32s3"
-
-build_idf_v5.0:
-  extends: .build_template
-  image: espressif/idf:release-v5.0
-  variables:
-    EXAMPLE_TARGETS: "esp32 esp32s2 esp32c3 esp32s3"
-
 build_idf_v5.1:
   extends: .build_template
   image: espressif/idf:release-v5.1
-  variables:
-    EXAMPLE_TARGETS: "esp32 esp32s2 esp32c3 esp32s3 esp32c2 esp32c6"
 
 build_idf_v5.2:
   extends: .build_template
@@ -78,6 +64,16 @@ build_idf_v5.2:
 build_idf_v5.3:
   extends: .build_template
   image: espressif/idf:release-v5.3
+
+build_idf_v5.4:
+  extends: .build_template
+  image: espressif/idf:release-v5.4
+
+build_idf_v5.5:
+  extends: .build_template
+  image: espressif/idf:release-v5.5
+  variables:
+    EXAMPLE_TARGETS: "esp32 esp32s2 esp32c3 esp32s3 esp32c2 esp32c6 esp32c5"
 
 include:
   - '.gitlab/ci/pre_commit.yml'
