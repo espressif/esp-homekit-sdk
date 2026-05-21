@@ -26,7 +26,12 @@
 #include <string.h>
 #include <sys/errno.h>
 
+#include "mbedtls/build_info.h"
+#if MBEDTLS_VERSION_MAJOR >= 4
+#include "mbedtls/private/aes.h"
+#else
 #include "mbedtls/aes.h"
+#endif
 #include "esp_log.h"
 
 #include "esp_mfi_aes.h"
