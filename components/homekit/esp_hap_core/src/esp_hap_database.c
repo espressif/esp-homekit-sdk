@@ -299,7 +299,7 @@ char *hap_get_acc_id()
 	return hap_priv.acc_id;
 }
 
-int hap_get_next_aid(char *id)
+int hap_get_next_aid(void)
 {
     hap_priv.cur_aid++;
     hap_save_cur_aid();
