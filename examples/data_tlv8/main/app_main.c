@@ -34,7 +34,9 @@
 #include <hap_apple_servs.h>
 #include <hap_apple_chars.h>
 
+#include <driver/gpio.h>
 #include <iot_button.h>
+#include <button_gpio.h>
 
 #include <app_wifi.h>
 #include <app_hap_setup_payload.h>
@@ -57,14 +59,14 @@ static const char *TAG = "HAP Sensor";
  * @brief The network reset button callback handler.
  * Useful for testing the Wi-Fi re-configuration feature of WAC2
  */
-static void reset_network_handler(void* arg)
+static void reset_network_handler(void *arg, void *data)
 {
     hap_reset_network();
 }
 /**
  * @brief The factory reset button callback handler.
  */
-static void reset_to_factory_handler(void* arg)
+static void reset_to_factory_handler(void *arg, void *data)
 {
     hap_reset_to_factory();
 }
@@ -76,9 +78,23 @@ static void reset_to_factory_handler(void* arg)
  */
 static void reset_key_init(uint32_t key_gpio_pin)
 {
-    button_handle_t handle = iot_button_create(key_gpio_pin, BUTTON_ACTIVE_LOW);
-    iot_button_add_on_release_cb(handle, RESET_NETWORK_BUTTON_TIMEOUT, reset_network_handler, NULL);
-    iot_button_add_on_press_cb(handle, RESET_TO_FACTORY_BUTTON_TIMEOUT, reset_to_factory_handler, NULL);
+    button_config_t btn_cfg = { 0 };
+    button_gpio_config_t gpio_cfg = {
+        .gpio_num = key_gpio_pin,
+        .active_level = 0,
+    };
+    button_handle_t handle = NULL;
+    if (iot_button_new_gpio_device(&btn_cfg, &gpio_cfg, &handle) != ESP_OK) {
+        return;
+    }
+    button_event_args_t net_args = {
+        .long_press.press_time = RESET_NETWORK_BUTTON_TIMEOUT * 1000,
+    };
+    iot_button_register_cb(handle, BUTTON_LONG_PRESS_UP, &net_args, reset_network_handler, NULL);
+    button_event_args_t fact_args = {
+        .long_press.press_time = RESET_TO_FACTORY_BUTTON_TIMEOUT * 1000,
+    };
+    iot_button_register_cb(handle, BUTTON_LONG_PRESS_START, &fact_args, reset_to_factory_handler, NULL);
 }
 
 

@@ -1,0 +1,2 @@
+# Keep FreeRTOS out of IRAM to avoid iram0_0_seg overflow on esp32
+CONFIG_FREERTOS_PLACE_FUNCTIONS_INTO_FLASH=y
