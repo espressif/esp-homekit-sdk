@@ -28,6 +28,10 @@
 
 #include "mbedtls/build_info.h"
 #if MBEDTLS_VERSION_MAJOR >= 4
+/* The legacy mbedtls_aes_* APIs still ship in mbedtls 4.0 but their
+ * header moved to mbedtls/private/. Allow private access so the
+ * function prototypes are visible. */
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
 #include "mbedtls/private/aes.h"
 #else
 #include "mbedtls/aes.h"
