@@ -102,7 +102,8 @@ static void app_wifi_print_qr(const char *name, const char *pop, const char *tra
 #ifdef CONFIG_APP_WIFI_PROV_SHOW_QR
     ESP_LOGI(TAG, "-----QR Code for ESP Provisioning-----");
     ESP_LOGI(TAG, "Scan this QR code from the phone app for Provisioning.");
-    qrcode_display(payload);
+    esp_qrcode_config_t qr_cfg = ESP_QRCODE_CONFIG_DEFAULT();
+    esp_qrcode_generate(&qr_cfg, payload);
 #endif /* CONFIG_APP_WIFI_PROV_SHOW_QR */
     ESP_LOGI(TAG, "If QR code is not visible, copy paste the below URL in a browser.\n%s?data=%s", QRCODE_BASE_URL, payload);
 }
