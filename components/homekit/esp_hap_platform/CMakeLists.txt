@@ -4,7 +4,13 @@ if(NOT CONFIG_IDF_TARGET_ESP8266)
     list(APPEND srcs src/esp_mfi_i2c.c)
 endif()
 
-if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.0")
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.3")
+    # IDF v5.3 split driver/ into per-peripheral components.
+    # esp_mfi_i2c.c uses driver/i2c_master.h from esp_driver_i2c.
+    # (v5.2 has the new i2c_master API too, but it still lives in
+    # the monolithic 'driver' component.)
+    list(APPEND priv_req esp_driver_i2c)
+elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.0")
     list(APPEND priv_req driver)
 endif()
 
