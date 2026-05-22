@@ -23,4 +23,14 @@ menu "Example Configuration"
         help
             Setup id to be used for HomeKot pairing, if hard-coded setup code is enabled.
 
+    config EXAMPLE_OUTLET_IN_USE_GPIO
+        int "Outlet In-Use GPIO"
+        default 28 if IDF_TARGET_ESP32C5
+        default 9 if IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32C6 || IDF_TARGET_ESP32C2 || IDF_TARGET_ESP32H2
+        default 0
+        help
+            GPIO connected to the outlet-in-use detection input. The defaults
+            map to the BOOT button on Espressif dev-kits for each chip, which
+            is convenient for testing without external wiring.
+
 endmenu
