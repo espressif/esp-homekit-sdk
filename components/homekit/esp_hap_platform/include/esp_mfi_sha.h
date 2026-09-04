@@ -68,7 +68,7 @@ void esp_mfi_sha1_update(esp_mfi_sha_ctx_t ctx, const uint8_t *msg, int len);
  * @param digest pointer of output data
  * @param ctx pointer of the SHA1 context
  */
-void esp_mfi_sha1_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest);
+void esp_mfi_sha1_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest, size_t digest_len, size_t *out_len);
 
 /**
  * @brief Free SHA1 context
@@ -112,7 +112,7 @@ void esp_mfi_sha256_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
  * @param digest pointer of output data
  * @param ctx pointer of the SHA256 context
  */
-void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest);
+void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest, size_t digest_len, size_t *out_len);
 
 /**
  * @brief Free SHA256 context
@@ -156,7 +156,7 @@ void esp_mfi_sha512_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
  * @param digest pointer of output data
  * @param ctx pointer of the SHA512 context
  */
-void esp_mfi_sha512_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest);
+void esp_mfi_sha512_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest, size_t digest_len, size_t *out_len);
 
 /**
  * @brief Free SHA512 context
