@@ -525,7 +525,10 @@ static int hap_prepare_json_database(char *buf, int bufsize, json_gen_flush_cb_t
 	}
 	json_gen_pop_array(&jstr);
 	json_gen_end_object(&jstr);
-	json_gen_str_end(&jstr);
+	if (json_gen_str_end(&jstr) < 0) {
+		ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate accessory database JSON");
+		return HAP_FAIL;
+	}
 	return HAP_SUCCESS;
 }
 
@@ -919,7 +922,9 @@ set_char_end:
 	if (include_status) {
 		json_gen_pop_array(&jstr);
 		json_gen_end_object(&jstr);
-		json_gen_str_end(&jstr);
+		if (json_gen_str_end(&jstr) < 0) {
+			ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate characteristics write response JSON");
+		}
 		ret = HAP_FAIL;
 	}
 
@@ -1267,7 +1272,9 @@ static int hap_http_get_characteristics(httpd_req_t *req)
 get_char_end:
 	json_gen_pop_array(&jstr);
 	json_gen_end_object(&jstr);
-	json_gen_str_end(&jstr);
+	if (json_gen_str_end(&jstr) < 0) {
+		ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate characteristics read response JSON");
+	}
 
 	hap_platform_memory_free(read_arr);
     hap_platform_memory_free(status_codes);
@@ -1470,7 +1477,10 @@ static void hap_send_notification(void *arg)
 
         json_gen_pop_array(&jstr);
 		json_gen_end_object(&jstr);
-		json_gen_str_end(&jstr);
+		if (json_gen_str_end(&jstr) < 0) {
+			ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate event JSON. Not sending event to fd %d", fd);
+			continue;
+		}
 
 		snprintf(buf, sizeof(buf), HTTPD_HDR_STR,
 				strlen(notif_json));
