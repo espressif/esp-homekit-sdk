@@ -433,9 +433,9 @@ static int hap_prepare_serv_db(__hap_serv_t *hs, json_gen_str_t *jptr, int sessi
 	json_gen_obj_set_int(jptr, "iid", hs->iid);
 	json_gen_obj_set_string(jptr, "type", hs->type_uuid);
 	if (hs->hidden)
-		json_gen_obj_set_bool(jptr, "hidden", "true");
+		json_gen_obj_set_bool(jptr, "hidden", true);
 	if (hs->primary)
-		json_gen_obj_set_bool(jptr, "primary", "true");
+		json_gen_obj_set_bool(jptr, "primary", true);
     if (hs->linked_servs) {
         hap_linked_serv_t *linked = hs->linked_servs;
         json_gen_push_array(jptr, "linked");
