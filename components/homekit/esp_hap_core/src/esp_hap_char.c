@@ -25,6 +25,7 @@
 #include <hap_platform_memory.h>
 #include <math.h>
 #include <string.h>
+#include <json_generator.h>
 #include "esp_mfi_debug.h"
 
 #include <esp_hap_main.h>
@@ -179,6 +180,19 @@ int hap_char_check_val_constraints(__hap_char_t *_hc, hap_val_t *val)
     return HAP_SUCCESS;
 }
 
+/* json_generator 2.x rejects a string that is not well-formed UTF-8, and the
+ * accessory database or characteristic response containing it is then cut
+ * off. Catch such a string when the application hands it to the SDK instead.
+ */
+static bool hap_char_str_is_utf8(const char *type_uuid, const char *s)
+{
+    if (json_gen_escape_string(s, strlen(s), NULL, 0) < 0) {
+        ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "String for characteristic %s is not valid UTF-8", type_uuid);
+        return false;
+    }
+    return true;
+}
+
 /**
  * @brief user update characteristics value, preparing for notification
  */
@@ -230,6 +244,9 @@ int hap_char_update_val(hap_char_t *hc, hap_val_t *val)
 			 * Old value NULL, New non-NULL
 			 * Old value non-NULL, new NULL
 			 */
+			if (val->s && !hap_char_str_is_utf8(_hc->type_uuid, val->s))
+				return HAP_FAIL;
+
 			if (_hc->val.s && val->s && !strcmp(_hc->val.s, val->s))
 				value_changed = false;
 			else
@@ -381,10 +398,13 @@ hap_char_t *hap_char_float_create(char *type_uuid, uint16_t perms, float f)
 hap_char_t *hap_char_string_create(char *type_uuid, uint16_t perms, char *s)
 {
     hap_val_t val;
-    if (s)
+    if (s) {
+        if (!hap_char_str_is_utf8(type_uuid, s))
+            return NULL;
         val.s = strdup(s);
-    else
+    } else {
         val.s = NULL;
+    }
     return hap_char_create(type_uuid, perms, HAP_CHAR_FORMAT_STRING, val);
 }
 
@@ -513,12 +533,16 @@ void hap_char_add_description(hap_char_t *hc, const char *description)
 {
     ESP_MFI_ASSERT(hc);
     __hap_char_t *tmp = (__hap_char_t *)hc;
+    if (description && !hap_char_str_is_utf8(tmp->type_uuid, description))
+        return;
     tmp->description = (char *)description;
 }
 void hap_char_add_unit(hap_char_t *hc, const char *unit)
 {
     ESP_MFI_ASSERT(hc);
     __hap_char_t *tmp = (__hap_char_t *)hc;
+    if (unit && !hap_char_str_is_utf8(tmp->type_uuid, unit))
+        return;
     tmp->unit = (char *)unit;
 }
 hap_char_t *hap_char_get_next(hap_char_t *hc)
