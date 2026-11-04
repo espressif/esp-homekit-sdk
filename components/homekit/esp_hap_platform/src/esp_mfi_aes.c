@@ -26,7 +26,7 @@
 #include <string.h>
 #include <sys/errno.h>
 
-#include "mbedtls/aes.h"
+#include "aes/esp_aes.h"
 #include "esp_log.h"
 
 #include "esp_mfi_aes.h"
@@ -110,16 +110,16 @@ int esp_mfi_aes_ctr_update(esp_mfi_aes_ctr_t incontext, const void *insrc, uint1
     aes_ctr_context_t *context = incontext;
     size_t offset = 0;
     uint8_t stream_block[MFI_AES_CTR_SIZE];
-    mbedtls_aes_context ctx;
-    mbedtls_aes_init(&ctx);
+    esp_aes_context ctx;
+    esp_aes_init(&ctx);
 
-    ret = mbedtls_aes_setkey_enc( &ctx, context->key, 128);
+    ret = esp_aes_setkey(&ctx, context->key, 128);
 
     if (ret != 0) {
         ESP_LOGE(TAG, "mfi aes setkey[%d]", ret);
         ret = -EINVAL;
     } else {
-        ret = mbedtls_aes_crypt_ctr(&ctx, insrclen, &offset, context->nonce, stream_block, (uint8_t *) insrc, indst);
+        ret = esp_aes_crypt_ctr(&ctx, insrclen, &offset, context->nonce, stream_block, (uint8_t *) insrc, indst);
         if (ret != 0) {
             ESP_LOGE(TAG, "mfi aes crypt[%d]", ret);
             ret = -EINVAL;

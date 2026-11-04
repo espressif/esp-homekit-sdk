@@ -238,6 +238,7 @@ int hap_acc_setup_init()
     }
 
     uint8_t digest[MFI_SHA512_SIZE] = {0};
+    size_t len;
     esp_mfi_sha_ctx_t ctx = 0;
     ctx = esp_mfi_sha512_new();
     if (!ctx) {
@@ -248,7 +249,7 @@ int hap_acc_setup_init()
     esp_mfi_sha512_init(ctx);
     esp_mfi_sha512_update(ctx, (const uint8_t *)hap_priv.setup_id, strlen(hap_priv.setup_id));
     esp_mfi_sha512_update(ctx, (const uint8_t *)hap_priv.acc_id, strlen(hap_priv.acc_id));
-    esp_mfi_sha512_final(ctx, digest);
+    esp_mfi_sha512_final(ctx, digest, sizeof(digest), &len);
     /* Copy only the first 4 bytes as the setup hash */
     memcpy(hap_priv.setup_hash, digest, SETUP_HASH_LEN);
     esp_mfi_sha512_free(ctx);
@@ -299,7 +300,7 @@ char *hap_get_acc_id()
 	return hap_priv.acc_id;
 }
 
-int hap_get_next_aid(char *id)
+int hap_get_next_aid()
 {
     hap_priv.cur_aid++;
     hap_save_cur_aid();

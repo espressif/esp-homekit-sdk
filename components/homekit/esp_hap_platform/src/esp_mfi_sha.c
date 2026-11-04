@@ -24,9 +24,7 @@
 
 #include <stdlib.h>
 
-#include "mbedtls/sha1.h"
-#include "mbedtls/sha256.h"
-#include "mbedtls/sha512.h"
+#include "psa/crypto.h"
 
 #include "esp_mfi_sha.h"
 
@@ -45,10 +43,8 @@
  */
 esp_mfi_sha_ctx_t esp_mfi_sha1_new(void)
 {
-    mbedtls_sha1_context *context = NULL;
-    context = (mbedtls_sha1_context *) malloc(sizeof(mbedtls_sha1_context));
-    mbedtls_sha1_init(context);
-    return context;
+    psa_hash_operation_t *op = calloc(1, sizeof(psa_hash_operation_t));
+    return op;
 }
 
 /**
@@ -60,10 +56,7 @@ esp_mfi_sha_ctx_t esp_mfi_sha1_new(void)
  */
 void esp_mfi_sha1_free(esp_mfi_sha_ctx_t ctx)
 {
-    if (ctx) {
-        mbedtls_sha1_free( (mbedtls_sha1_context *)ctx);
-        free(ctx);
-    }
+    free(ctx);
 }
 
 /**
@@ -78,7 +71,7 @@ void esp_mfi_sha1_init(esp_mfi_sha_ctx_t ctx)
     if (ctx == NULL)
         return;
 
-    mbedtls_sha1_starts((mbedtls_sha1_context *) ctx);
+    psa_hash_setup((psa_hash_operation_t *)ctx, PSA_ALG_SHA_1);
 }
 
 /**
@@ -95,7 +88,7 @@ void esp_mfi_sha1_update(esp_mfi_sha_ctx_t ctx, const uint8_t * msg, int len)
     if (ctx == NULL || msg == NULL)
         return;
 
-    mbedtls_sha1_update((mbedtls_sha1_context *) ctx, msg, len);
+    psa_hash_update((psa_hash_operation_t *)ctx, msg, len);
 }
 
 /**
@@ -106,12 +99,12 @@ void esp_mfi_sha1_update(esp_mfi_sha_ctx_t ctx, const uint8_t * msg, int len)
  *
  * @return none
  */
-void esp_mfi_sha1_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
+void esp_mfi_sha1_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest, size_t digest_len, size_t *out_len)
 {
-    if (ctx == NULL || digest == NULL)
+    if (ctx == NULL || digest == NULL || out_len == NULL)
         return;
 
-    mbedtls_sha1_finish((mbedtls_sha1_context *) ctx, digest);
+    psa_hash_finish((psa_hash_operation_t *)ctx, digest, digest_len, out_len);
 }
 
 /*
@@ -127,10 +120,8 @@ void esp_mfi_sha1_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
  */
 esp_mfi_sha_ctx_t esp_mfi_sha256_new(void)
 {
-    mbedtls_sha256_context *context = NULL;
-    context = (mbedtls_sha256_context *) malloc(sizeof(mbedtls_sha256_context));
-    mbedtls_sha256_init(context);
-    return context;
+    psa_hash_operation_t *op = calloc(1, sizeof(psa_hash_operation_t));
+    return op;
 }
 
 /**
@@ -142,10 +133,7 @@ esp_mfi_sha_ctx_t esp_mfi_sha256_new(void)
  */
 void esp_mfi_sha256_free(esp_mfi_sha_ctx_t ctx)
 {
-    if (ctx) {
-        mbedtls_sha256_free((mbedtls_sha256_context *)ctx);
-        free(ctx);
-    }
+    free(ctx);
 }
 
 /**
@@ -160,7 +148,7 @@ void esp_mfi_sha256_init(esp_mfi_sha_ctx_t ctx)
     if (ctx == NULL)
         return;
 
-    mbedtls_sha256_starts((mbedtls_sha256_context *) ctx, 0);
+    psa_hash_setup((psa_hash_operation_t *)ctx, PSA_ALG_SHA_256);
 }
 
 /**
@@ -177,7 +165,7 @@ void esp_mfi_sha256_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
     if (ctx == NULL || input == NULL)
         return;
 
-    mbedtls_sha256_update((mbedtls_sha256_context *) ctx, input, len);
+    psa_hash_update((psa_hash_operation_t *)ctx, input, len);
 }
 
 /**
@@ -188,12 +176,12 @@ void esp_mfi_sha256_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
  *
  * @return none
  */
-void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
+void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest, size_t digest_len, size_t *out_len)
 {
-    if (ctx == NULL || digest == NULL)
+    if (ctx == NULL || digest == NULL || out_len == NULL)
         return;
 
-    mbedtls_sha256_finish((mbedtls_sha256_context *) ctx, digest);
+    psa_hash_finish((psa_hash_operation_t *)ctx, digest, digest_len, out_len);
 }
 
 /*
@@ -209,10 +197,8 @@ void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
  */
 esp_mfi_sha_ctx_t esp_mfi_sha512_new(void)
 {
-    mbedtls_sha512_context *context = NULL;
-    context = (mbedtls_sha512_context *) malloc(sizeof(mbedtls_sha512_context));
-    mbedtls_sha512_init(context);
-    return context;
+    psa_hash_operation_t *op = calloc(1, sizeof(psa_hash_operation_t));
+    return op;
 }
 
 /**
@@ -224,10 +210,7 @@ esp_mfi_sha_ctx_t esp_mfi_sha512_new(void)
  */
 void esp_mfi_sha512_free(esp_mfi_sha_ctx_t ctx)
 {
-    if (ctx) {
-        mbedtls_sha512_free((mbedtls_sha512_context *)ctx);
-        free(ctx);
-    }
+    free(ctx);
 }
 
 /**
@@ -242,7 +225,7 @@ void esp_mfi_sha512_init(esp_mfi_sha_ctx_t ctx)
     if (ctx == NULL)
         return;
 
-    mbedtls_sha512_starts((mbedtls_sha512_context *) ctx, 0);
+    psa_hash_setup((psa_hash_operation_t *)ctx, PSA_ALG_SHA_512);
 }
 
 /**
@@ -259,7 +242,7 @@ void esp_mfi_sha512_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
     if (ctx == NULL || input == NULL)
         return;
 
-    mbedtls_sha512_update((mbedtls_sha512_context *) ctx, input, len);
+    psa_hash_update((psa_hash_operation_t *)ctx, input, len);
 }
 
 /**
@@ -270,10 +253,10 @@ void esp_mfi_sha512_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
  *
  * @return none
  */
-void esp_mfi_sha512_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
+void esp_mfi_sha512_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest, size_t digest_len, size_t *out_len)
 {
-    if (ctx == NULL || digest == NULL)
+    if (ctx == NULL || digest == NULL || out_len == NULL)
         return;
 
-    mbedtls_sha512_finish((mbedtls_sha512_context *) ctx, digest);
+    psa_hash_finish((psa_hash_operation_t *)ctx, digest, digest_len, out_len);
 }

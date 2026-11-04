@@ -37,7 +37,7 @@ esp_err_t hap_wifi_is_provisioned(bool *provisioned)
 
     /* Get Wi-Fi Station configuration */
     wifi_config_t wifi_cfg;
-    if (esp_wifi_get_config(ESP_IF_WIFI_STA, &wifi_cfg) != ESP_OK) {
+    if (esp_wifi_get_config(WIFI_IF_STA, &wifi_cfg) != ESP_OK) {
         return ESP_FAIL;
     }
 
@@ -87,7 +87,7 @@ esp_err_t hap_wifi_softap_start(char *ssid)
     } else {
         esp_wifi_set_mode(WIFI_MODE_AP);
     }
-    esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config);
+    esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     esp_wifi_start();
     return ESP_OK;
 }
@@ -114,7 +114,7 @@ esp_err_t hap_wifi_sta_connect(wifi_config_t *config)
     } else {
         esp_wifi_set_mode(WIFI_MODE_STA);
     }
-    esp_wifi_set_config(ESP_IF_WIFI_STA, config);
+    esp_wifi_set_config(WIFI_IF_STA, config);
     esp_wifi_start();
     esp_wifi_connect();
     return ESP_OK;
@@ -130,7 +130,7 @@ esp_err_t hap_wifi_sta_switch(wifi_config_t *config)
     } else {
         esp_wifi_set_mode(WIFI_MODE_STA);
     }
-    esp_wifi_set_config(ESP_IF_WIFI_STA, config);
+    esp_wifi_set_config(WIFI_IF_STA, config);
     esp_wifi_disconnect();
     esp_wifi_connect();
     return ESP_OK;
