@@ -40,22 +40,9 @@ static const char *TAG = "HAP FW Upgrade";
 static hap_fw_upgrade_status_t fw_upgrade_status = FW_UPG_STATUS_IDLE;
 static hap_char_t *fw_upgrade_status_char;
 
-static void remove_escape_char(char *url)
-{
-    char *target_url = url;
-    while (*url) {
-        if (*url == '\\') {
-            url++;
-        }
-        *target_url++ = *url++;
-    }
-    *target_url = '\0';
-}
-
 static void fw_upgrade_thread_entry(void *data)
 {
     esp_http_client_config_t *client_config = (esp_http_client_config_t *)data;
-    remove_escape_char((char *)client_config->url);
     ESP_LOGI(TAG, "Fetching FW image from %s", client_config->url);
     fw_upgrade_status = FW_UPG_STATUS_UPGRADING;
     hap_val_t val = {.i = fw_upgrade_status};

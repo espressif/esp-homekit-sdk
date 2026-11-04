@@ -433,9 +433,9 @@ static int hap_prepare_serv_db(__hap_serv_t *hs, json_gen_str_t *jptr, int sessi
 	json_gen_obj_set_int(jptr, "iid", hs->iid);
 	json_gen_obj_set_string(jptr, "type", hs->type_uuid);
 	if (hs->hidden)
-		json_gen_obj_set_bool(jptr, "hidden", "true");
+		json_gen_obj_set_bool(jptr, "hidden", true);
 	if (hs->primary)
-		json_gen_obj_set_bool(jptr, "primary", "true");
+		json_gen_obj_set_bool(jptr, "primary", true);
     if (hs->linked_servs) {
         hap_linked_serv_t *linked = hs->linked_servs;
         json_gen_push_array(jptr, "linked");
@@ -525,7 +525,10 @@ static int hap_prepare_json_database(char *buf, int bufsize, json_gen_flush_cb_t
 	}
 	json_gen_pop_array(&jstr);
 	json_gen_end_object(&jstr);
-	json_gen_str_end(&jstr);
+	if (json_gen_str_end(&jstr) < 0) {
+		ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate accessory database JSON");
+		return HAP_FAIL;
+	}
 	return HAP_SUCCESS;
 }
 
@@ -591,18 +594,20 @@ static void hap_set_char_report_write_response(bool *include_status, json_gen_st
     json_gen_end_object(jstr);
 }
 
-static void remove_escape_char(char *data, uint32_t *buf_len)
+/* HAP allows a boolean to be expressed as true/false or 1/0 (HAP Spec R2, Table 6-4).
+ * json_parser 2.0 accepts only true/false, so fall back to an integer, accepting exactly 0 or 1.
+ */
+static int hap_json_obj_get_bool(jparse_ctx_t *jctx, const char *name, bool *val)
 {
-    char *target_data = data;
-    uint32_t len = *buf_len;
-    while (len--) {
-        if (*data == '\\') {
-            data++;
-            (*buf_len)--;
-            len--;
-        }
-        *target_data++ = *data++;
+    if (json_obj_get_bool(jctx, name, val) == OS_SUCCESS) {
+        return HAP_SUCCESS;
     }
+    int i;
+    if ((json_obj_get_int(jctx, name, &i) == OS_SUCCESS) && (i == 0 || i == 1)) {
+        *val = (i == 1);
+        return HAP_SUCCESS;
+    }
+    return HAP_FAIL;
 }
 
 static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_size,
@@ -683,7 +688,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
          * here.
          */
 		bool ev;
-		if (json_obj_get_bool(jctx, "ev", &ev) == HAP_SUCCESS) {
+		if (hap_json_obj_get_bool(jctx, "ev", &ev) == HAP_SUCCESS) {
             if (hc->permission & HAP_CHAR_PERM_EV) {
                 int index = hap_get_ctrl_session_index(session);
                 hap_char_manage_notification((hap_char_t *)hc, index, ev);
@@ -751,7 +756,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
 		int json_ret = HAP_FAIL;
 		switch (hc->format) {
 			case HAP_CHAR_FORMAT_BOOL:
-				json_ret = json_obj_get_bool(jctx, "value", &val.b);
+				json_ret = hap_json_obj_get_bool(jctx, "value", &val.b);
 				break;
 			case HAP_CHAR_FORMAT_UINT8:
 			case HAP_CHAR_FORMAT_UINT16:
@@ -764,7 +769,7 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
                  * cases.
                  */
                 if ((json_ret != HAP_SUCCESS) && (hc->format == HAP_CHAR_FORMAT_UINT8)) {
-                    json_ret = json_obj_get_bool(jctx, "value", &val.b);
+                    json_ret = hap_json_obj_get_bool(jctx, "value", &val.b);
                 }
 				break;
 			case HAP_CHAR_FORMAT_FLOAT:
@@ -799,7 +804,6 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
                     }
                     val.d.buflen = str_len + 1;
 					json_obj_get_string(jctx, "value", (char *)val.d.buf, val.d.buflen);
-                    remove_escape_char((char *)val.d.buf, &val.d.buflen);
                     if (esp_mfi_base64_decode((const char *)val.d.buf, strlen((char *)val.d.buf),
                                 (char *)val.d.buf, val.d.buflen, (int *)&val.d.buflen) != 0) {
                         hap_platform_memory_free(val.d.buf);
@@ -832,11 +836,11 @@ static int hap_http_handle_set_char(jparse_ctx_t *jctx, char *outbuf, int buf_si
             esp_mfi_base64_decode((const char *)auth_data.data, auth_data.len, (char *)auth_data.data, auth_data.len + 1, &auth_data.len);
         }
         bool remote = false;
-        json_obj_get_bool(jctx, "remote", &remote);
+        hap_json_obj_get_bool(jctx, "remote", &remote);
 
         bool response = false;
         if (hc->permission & HAP_CHAR_PERM_WR) {
-            json_obj_get_bool(jctx, "r", &response);
+            hap_json_obj_get_bool(jctx, "r", &response);
         }
 
         int index = hap_get_ctrl_session_index(session);
@@ -918,7 +922,9 @@ set_char_end:
 	if (include_status) {
 		json_gen_pop_array(&jstr);
 		json_gen_end_object(&jstr);
-		json_gen_str_end(&jstr);
+		if (json_gen_str_end(&jstr) < 0) {
+			ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate characteristics write response JSON");
+		}
 		ret = HAP_FAIL;
 	}
 
@@ -1266,7 +1272,9 @@ static int hap_http_get_characteristics(httpd_req_t *req)
 get_char_end:
 	json_gen_pop_array(&jstr);
 	json_gen_end_object(&jstr);
-	json_gen_str_end(&jstr);
+	if (json_gen_str_end(&jstr) < 0) {
+		ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate characteristics read response JSON");
+	}
 
 	hap_platform_memory_free(read_arr);
     hap_platform_memory_free(status_codes);
@@ -1469,7 +1477,10 @@ static void hap_send_notification(void *arg)
 
         json_gen_pop_array(&jstr);
 		json_gen_end_object(&jstr);
-		json_gen_str_end(&jstr);
+		if (json_gen_str_end(&jstr) < 0) {
+			ESP_MFI_DEBUG(ESP_MFI_DEBUG_ERR, "Failed to generate event JSON. Not sending event to fd %d", fd);
+			continue;
+		}
 
 		snprintf(buf, sizeof(buf), HTTPD_HDR_STR,
 				strlen(notif_json));
