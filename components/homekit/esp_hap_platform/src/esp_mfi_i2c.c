@@ -47,8 +47,15 @@
 #ifdef CONFIG_I2C_SOFTWARE
 #include "driver/gpio.h"
 #else
+#include "esp_idf_version.h"
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
+#include "driver/i2c_master.h"
+#else
 #include "driver/i2c.h"
 #endif
+#endif
+
+#include <string.h>
 
 #include "esp_log.h"
 #include "esp_mfi_i2c.h"
@@ -85,6 +92,156 @@ void esp_mfi_i2c_configure(uint8_t sda_gpio, uint8_t scl_gpio)
     i2c_master_sda_gpio = sda_gpio;
     i2c_master_scl_gpio = scl_gpio;
 }
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
+/* New I2C master driver (driver/i2c_master.h) from ESP-IDF v5.2+.
+ *
+ * Callers pass slvaddr in the legacy 8-bit "write address" form (e.g. 0x20
+ * for the MFi Auth 3.0 CP, whose 7-bit address is 0x10). The new API takes
+ * the 7-bit address directly, so we extract it via `slvaddr >> 1`.
+ *
+ * The bus and device handles are created once at init and reused across
+ * every transaction. Add/remove-device per call (as in earlier attempts)
+ * causes erratic behaviour on the second and subsequent transactions.
+ *
+ * For the read path we deliberately use separate i2c_master_transmit()
+ * (which ends with STOP) and i2c_master_receive() (which begins with
+ * START), matching the MFi spec section 74.5.6 which requires STOP then
+ * START between the register-write and read phases. NOT
+ * i2c_master_transmit_receive(), which uses a repeated-START. */
+
+static i2c_master_bus_handle_t s_bus = NULL;
+static i2c_master_dev_handle_t s_dev = NULL;
+static uint8_t s_dev_addr_7bit = 0xFF; /* sentinel: no device added yet */
+
+#define I2C_TIMEOUT_MS 1000
+
+int esp_mfi_i2c_init(void)
+{
+    if (s_bus) {
+        return 0; /* already initialised */
+    }
+    i2c_master_bus_config_t bus_config = {
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .i2c_port = I2C_MASTER_NUM,
+        .sda_io_num = i2c_master_sda_gpio,
+        .scl_io_num = i2c_master_scl_gpio,
+        .glitch_ignore_cnt = 7,
+        .flags.enable_internal_pullup = true,
+    };
+    esp_err_t ret = i2c_new_master_bus(&bus_config, &s_bus);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "i2c_new_master_bus failed: %s", esp_err_to_name(ret));
+        return -EINVAL;
+    }
+    return 0;
+}
+
+/* Lazily create or recreate the device handle.
+ * The MFi auth chip uses a fixed address so the recreate branch should
+ * never fire in practice, but it is kept for safety. */
+static esp_err_t mfi_i2c_ensure_dev(uint8_t slvaddr)
+{
+    uint8_t addr_7bit = slvaddr >> 1;
+    if (s_dev != NULL && s_dev_addr_7bit == addr_7bit) {
+        return ESP_OK;
+    }
+    if (s_dev != NULL) {
+        i2c_master_bus_rm_device(s_dev);
+        s_dev = NULL;
+    }
+    i2c_device_config_t dev_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = addr_7bit,
+        .scl_speed_hz = I2C_MASTER_FREQ_HZ,
+    };
+    esp_err_t ret = i2c_master_bus_add_device(s_bus, &dev_cfg, &s_dev);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "i2c_master_bus_add_device failed: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    s_dev_addr_7bit = addr_7bit;
+    return ESP_OK;
+}
+
+int esp_mfi_i2c_write(uint8_t slvaddr, uint8_t regaddr, uint8_t *buff, uint32_t len)
+{
+    if (!buff || !s_bus) {
+        return -EINVAL;
+    }
+    if (mfi_i2c_ensure_dev(slvaddr) != ESP_OK) {
+        return -EIO;
+    }
+
+    ESP_LOGI(TAG, "Writing to HW I2C");
+
+    /* Build [regaddr | payload]. The driver injects the device address
+     * and R/W bit automatically — do not include them in this buffer. */
+    uint8_t *wbuf = malloc(len + 1);
+    if (!wbuf) {
+        return -ENOMEM;
+    }
+    wbuf[0] = regaddr;
+    memcpy(wbuf + 1, buff, len);
+
+    esp_err_t ret = ESP_FAIL;
+    for (int i = 0; i < I2C_MASTER_MAX_RETRY; i++) {
+        ret = i2c_master_transmit(s_dev, wbuf, len + 1, I2C_TIMEOUT_MS);
+        if (ret == ESP_OK) {
+            break;
+        }
+        ets_delay_us(500); /* MFi spec: wait 500 us before retry on NACK */
+    }
+    free(wbuf);
+
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Write data to slave fail: %s", esp_err_to_name(ret));
+    }
+    return ret;
+}
+
+int esp_mfi_i2c_read(uint8_t slvaddr, uint8_t regaddr, uint8_t *buff, uint32_t len)
+{
+    if (!buff || !s_bus) {
+        return -EINVAL;
+    }
+    if (mfi_i2c_ensure_dev(slvaddr) != ESP_OK) {
+        return -EIO;
+    }
+
+    ESP_LOGI(TAG, "Reading from HW I2C");
+
+    /* Mirror the legacy nested-retry structure: inner loop retries the
+     * register-write phase up to I2C_MASTER_MAX_READ times (gives the
+     * chip time to be ready, especially for block 3 certificate reads
+     * that need t_CERT after register selection), outer loop retries
+     * the full write+read transaction up to I2C_MASTER_MAX_RETRY times. */
+    esp_err_t ret = ESP_FAIL;
+    for (int i = 0; i < I2C_MASTER_MAX_RETRY; i++) {
+        /* Phase 1: write the register address. Ends with STOP. */
+        for (int j = 0; j < I2C_MASTER_MAX_READ; j++) {
+            ret = i2c_master_transmit(s_dev, &regaddr, 1, I2C_TIMEOUT_MS);
+            if (ret == ESP_OK) {
+                break;
+            }
+            ets_delay_us(I2C_MASTER_INTERNAL_TIMES);
+        }
+        ets_delay_us(I2C_MASTER_INTERNAL_TIMES);
+
+        /* Phase 2: separate START + read. Per MFi spec 74.5.6. */
+        ret = i2c_master_receive(s_dev, buff, len, I2C_TIMEOUT_MS);
+        if (ret == ESP_OK) {
+            break;
+        }
+    }
+
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Read data from slave fail: %s", esp_err_to_name(ret));
+    }
+    return ret;
+}
+
+#else /* ESP_IDF_VERSION < 5.2.0 — legacy driver/i2c.h API */
 
 int esp_mfi_i2c_init(void)
 {
@@ -215,6 +372,8 @@ int esp_mfi_i2c_read(uint8_t slvaddr, uint8_t regaddr, uint8_t *buff, uint32_t l
 
     return ret;
 }
+
+#endif /* ESP_IDF_VERSION >= 5.2.0 */
 
 #else
 

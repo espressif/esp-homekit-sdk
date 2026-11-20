@@ -24,9 +24,15 @@
 
 #include <stdlib.h>
 
+#include "mbedtls/build_info.h"
+#if MBEDTLS_VERSION_MAJOR >= 4
+/* Use PSA Crypto for SHA on mbedtls v4. */
+#include "psa/crypto.h"
+#else
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#endif
 
 #include "esp_mfi_sha.h"
 
@@ -43,6 +49,59 @@
  *
  * @return the SHA1 context point
  */
+#if MBEDTLS_VERSION_MAJOR >= 4
+/* SHA-1 backed by PSA Crypto. mbedtls 4.0 no longer ships the legacy
+ * mbedtls_sha1_* implementation; SHA-1 is only available via PSA. The
+ * IDF startup calls psa_crypto_init() automatically. */
+
+esp_mfi_sha_ctx_t esp_mfi_sha1_new(void)
+{
+    psa_hash_operation_t *op = malloc(sizeof(psa_hash_operation_t));
+    if (op) {
+        *op = (psa_hash_operation_t)PSA_HASH_OPERATION_INIT;
+    }
+    return op;
+}
+
+void esp_mfi_sha1_free(esp_mfi_sha_ctx_t ctx)
+{
+    if (ctx) {
+        psa_hash_abort((psa_hash_operation_t *)ctx);
+        free(ctx);
+    }
+}
+
+void esp_mfi_sha1_init(esp_mfi_sha_ctx_t ctx)
+{
+    if (ctx == NULL) {
+        return;
+    }
+    /* Abort first so calling _init twice on the same ctx resets it
+     * (matches the legacy mbedtls_sha1_starts() behaviour). */
+    psa_hash_abort((psa_hash_operation_t *)ctx);
+    psa_hash_setup((psa_hash_operation_t *)ctx, PSA_ALG_SHA_1);
+}
+
+void esp_mfi_sha1_update(esp_mfi_sha_ctx_t ctx, const uint8_t * msg, int len)
+{
+    if (ctx == NULL || msg == NULL) {
+        return;
+    }
+    psa_hash_update((psa_hash_operation_t *)ctx, msg, (size_t)len);
+}
+
+void esp_mfi_sha1_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
+{
+    if (ctx == NULL || digest == NULL) {
+        return;
+    }
+    size_t out_len = 0;
+    psa_hash_finish((psa_hash_operation_t *)ctx, digest,
+                    PSA_HASH_LENGTH(PSA_ALG_SHA_1), &out_len);
+}
+
+#else /* MBEDTLS_VERSION_MAJOR < 4 */
+
 esp_mfi_sha_ctx_t esp_mfi_sha1_new(void)
 {
     mbedtls_sha1_context *context = NULL;
@@ -114,17 +173,60 @@ void esp_mfi_sha1_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
     mbedtls_sha1_finish((mbedtls_sha1_context *) ctx, digest);
 }
 
+#endif /* MBEDTLS_VERSION_MAJOR >= 4 */
+
 /*
  * SHA256 declarations
  */
 
-/**
- * @bref Create SHA256 context
- *
- * @param none
- *
- * @return the SHA256 context point
- */
+#if MBEDTLS_VERSION_MAJOR >= 4
+
+esp_mfi_sha_ctx_t esp_mfi_sha256_new(void)
+{
+    psa_hash_operation_t *op = malloc(sizeof(psa_hash_operation_t));
+    if (op) {
+        *op = (psa_hash_operation_t)PSA_HASH_OPERATION_INIT;
+    }
+    return op;
+}
+
+void esp_mfi_sha256_free(esp_mfi_sha_ctx_t ctx)
+{
+    if (ctx) {
+        psa_hash_abort((psa_hash_operation_t *)ctx);
+        free(ctx);
+    }
+}
+
+void esp_mfi_sha256_init(esp_mfi_sha_ctx_t ctx)
+{
+    if (ctx == NULL) {
+        return;
+    }
+    psa_hash_abort((psa_hash_operation_t *)ctx);
+    psa_hash_setup((psa_hash_operation_t *)ctx, PSA_ALG_SHA_256);
+}
+
+void esp_mfi_sha256_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
+{
+    if (ctx == NULL || input == NULL) {
+        return;
+    }
+    psa_hash_update((psa_hash_operation_t *)ctx, input, (size_t)len);
+}
+
+void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
+{
+    if (ctx == NULL || digest == NULL) {
+        return;
+    }
+    size_t out_len = 0;
+    psa_hash_finish((psa_hash_operation_t *)ctx, digest,
+                    PSA_HASH_LENGTH(PSA_ALG_SHA_256), &out_len);
+}
+
+#else /* MBEDTLS_VERSION_MAJOR < 4 */
+
 esp_mfi_sha_ctx_t esp_mfi_sha256_new(void)
 {
     mbedtls_sha256_context *context = NULL;
@@ -133,13 +235,6 @@ esp_mfi_sha_ctx_t esp_mfi_sha256_new(void)
     return context;
 }
 
-/**
- * @bref Free SHA256 context
- *
- * @param ctx the SHA256 context point
- *
- * @return none
- */
 void esp_mfi_sha256_free(esp_mfi_sha_ctx_t ctx)
 {
     if (ctx) {
@@ -148,13 +243,6 @@ void esp_mfi_sha256_free(esp_mfi_sha_ctx_t ctx)
     }
 }
 
-/**
- * @bref Init SHA256 context
- *
- * @param ctx the SHA256 context point
- *
- * @return none
- */
 void esp_mfi_sha256_init(esp_mfi_sha_ctx_t ctx)
 {
     if (ctx == NULL)
@@ -163,15 +251,6 @@ void esp_mfi_sha256_init(esp_mfi_sha_ctx_t ctx)
     mbedtls_sha256_starts((mbedtls_sha256_context *) ctx, 0);
 }
 
-/**
- * @bref Update SHA256 context
- *
- * @param ctx the SHA256 context point
- *        msg input data point
- *        len input data length
- *
- * @return none
- */
 void esp_mfi_sha256_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
 {
     if (ctx == NULL || input == NULL)
@@ -180,14 +259,6 @@ void esp_mfi_sha256_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
     mbedtls_sha256_update((mbedtls_sha256_context *) ctx, input, len);
 }
 
-/**
- * @bref Final SHA256 context
- *
- * @param digest output data point
- *        ctx the SHA256 context point
- *
- * @return none
- */
 void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
 {
     if (ctx == NULL || digest == NULL)
@@ -196,17 +267,60 @@ void esp_mfi_sha256_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
     mbedtls_sha256_finish((mbedtls_sha256_context *) ctx, digest);
 }
 
+#endif /* MBEDTLS_VERSION_MAJOR >= 4 */
+
 /*
  * SHA512 declarations
  */
 
-/**
- * @bref Create SHA512 context
- *
- * @param none
- *
- * @return the SHA512 context point
- */
+#if MBEDTLS_VERSION_MAJOR >= 4
+
+esp_mfi_sha_ctx_t esp_mfi_sha512_new(void)
+{
+    psa_hash_operation_t *op = malloc(sizeof(psa_hash_operation_t));
+    if (op) {
+        *op = (psa_hash_operation_t)PSA_HASH_OPERATION_INIT;
+    }
+    return op;
+}
+
+void esp_mfi_sha512_free(esp_mfi_sha_ctx_t ctx)
+{
+    if (ctx) {
+        psa_hash_abort((psa_hash_operation_t *)ctx);
+        free(ctx);
+    }
+}
+
+void esp_mfi_sha512_init(esp_mfi_sha_ctx_t ctx)
+{
+    if (ctx == NULL) {
+        return;
+    }
+    psa_hash_abort((psa_hash_operation_t *)ctx);
+    psa_hash_setup((psa_hash_operation_t *)ctx, PSA_ALG_SHA_512);
+}
+
+void esp_mfi_sha512_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
+{
+    if (ctx == NULL || input == NULL) {
+        return;
+    }
+    psa_hash_update((psa_hash_operation_t *)ctx, input, (size_t)len);
+}
+
+void esp_mfi_sha512_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
+{
+    if (ctx == NULL || digest == NULL) {
+        return;
+    }
+    size_t out_len = 0;
+    psa_hash_finish((psa_hash_operation_t *)ctx, digest,
+                    PSA_HASH_LENGTH(PSA_ALG_SHA_512), &out_len);
+}
+
+#else /* MBEDTLS_VERSION_MAJOR < 4 */
+
 esp_mfi_sha_ctx_t esp_mfi_sha512_new(void)
 {
     mbedtls_sha512_context *context = NULL;
@@ -215,13 +329,6 @@ esp_mfi_sha_ctx_t esp_mfi_sha512_new(void)
     return context;
 }
 
-/**
- * @bref Free SHA512 context
- *
- * @param ctx the SHA512 context point
- *
- * @return none
- */
 void esp_mfi_sha512_free(esp_mfi_sha_ctx_t ctx)
 {
     if (ctx) {
@@ -230,13 +337,6 @@ void esp_mfi_sha512_free(esp_mfi_sha_ctx_t ctx)
     }
 }
 
-/**
- * @bref Init SHA512 context
- *
- * @param ctx the SHA512 context point
- *
- * @return none
- */
 void esp_mfi_sha512_init(esp_mfi_sha_ctx_t ctx)
 {
     if (ctx == NULL)
@@ -245,15 +345,6 @@ void esp_mfi_sha512_init(esp_mfi_sha_ctx_t ctx)
     mbedtls_sha512_starts((mbedtls_sha512_context *) ctx, 0);
 }
 
-/**
- * @bref Update SHA512 context
- *
- * @param ctx the SHA512 context point
- *        msg input data point
- *        len input data length
- *
- * @return none
- */
 void esp_mfi_sha512_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
 {
     if (ctx == NULL || input == NULL)
@@ -262,14 +353,6 @@ void esp_mfi_sha512_update(esp_mfi_sha_ctx_t ctx, const uint8_t *input, int len)
     mbedtls_sha512_update((mbedtls_sha512_context *) ctx, input, len);
 }
 
-/**
- * @bref Final SHA512 context
- *
- * @param digest output data point
- *        ctx the SHA512 context point
- *
- * @return none
- */
 void esp_mfi_sha512_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
 {
     if (ctx == NULL || digest == NULL)
@@ -277,3 +360,5 @@ void esp_mfi_sha512_final(esp_mfi_sha_ctx_t ctx, uint8_t *digest)
 
     mbedtls_sha512_finish((mbedtls_sha512_context *) ctx, digest);
 }
+
+#endif /* MBEDTLS_VERSION_MAJOR >= 4 */

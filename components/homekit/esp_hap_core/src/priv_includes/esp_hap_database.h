@@ -87,7 +87,7 @@ typedef struct {
 extern hap_priv_t hap_priv;
 int hap_database_init(void);
 char *hap_get_acc_id();
-int hap_get_next_aid();
+int hap_get_next_aid(void);
 int hap_acc_setup_init();
 void hap_erase_accessory_info();
 void hap_increment_and_save_config_num();
